@@ -24,7 +24,7 @@ class Router {
 
 
 public:
-    Router(int router_id, int buffer_size, int routing_algorithm, int traffic_pattern, int num_node);
+    Router(int router_id, int buffer_size, int routing_algorithm, int traffic_pattern, int num_node, );
     void deadlock_check(int packet_idle_cycle);
     int get_num_valid_buffer(Packet buffers);
     int find_valid_buffer(Packet buffers);

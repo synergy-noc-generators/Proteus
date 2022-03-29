@@ -14,7 +14,7 @@ class VN {
 }
 
 public:
-    VN(int num_node);
+    VN();
     VN(int deadlock_threshold, int packets_per_node, int inject_rate, int routing_algorithm, int traffic_pattern, int num_node);
     bool deadlock_check(int idle_cycle);
     bool packet_if_send();

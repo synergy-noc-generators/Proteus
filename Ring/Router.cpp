@@ -20,6 +20,7 @@ Router::Router(int router_id, int buffer_size, int routing_algorithm, int traffi
     this.traffic_pattern = traffic_pattern;
     this.backpressure = false;
     this.deadlock = false;
+    static VN virtual_node(deadlock_threshold,packets_per_node,inject_rate,routing_algorithm,traffic_pattern, num_node);
 }
 
 void Router::deadlock_check(int packet_idle_cycle) {
