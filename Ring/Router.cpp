@@ -20,7 +20,7 @@ Router::Router(int router_id, int buffer_size, int routing_algorithm, int traffi
     this.traffic_pattern = traffic_pattern;
     this.backpressure = false;
     this.deadlock = false;
-    static VN virtual_node(deadlock_threshold,packets_per_node,inject_rate,routing_algorithm,traffic_pattern, num_node);
+    //static VN virtual_node(deadlock_threshold,packets_per_node,inject_rate,routing_algorithm,traffic_pattern, num_node);
 }
 
 void Router::deadlock_check(int packet_idle_cycle) {
@@ -61,9 +61,10 @@ void Router::packet_add_to_queue(VN vn) {
     }
 }
 
+// try to generate packets and put into local buffers
 void Router::packet_produce(VN vn) {
     int location = find_valid_buffer(this.buffer_local);
-    if (location != -1) {
+    if (location != -1 && this.packet_wait_generate > 0) {
         this.buffer_local[i].valid = true;
         this.buffer_local[i].source = this.router_id;
         this.buffer_local[i].cycle_time = vn.get_current_cycle();
@@ -73,4 +74,22 @@ void Router::packet_produce(VN vn) {
     }
 }
 
-// todo: packet send out, and how to access the "backpressure" signal from the next router 
+// todo: need a switch allocator to arbite output port for parallel request from ports. Ex. west input port and local port both want to go east
+Packet Router::Switch_Allocator() {
+    // call packet_to_send for different ports and then arbite base on the cycle time of the packets?
+}
+
+
+// todo: packet send out, and how to access the "backpressure" signal from the next router, aka buffer read and link traversal
+// Depending on the on-off, the top function decide call send_packet or not. the top function should return the packet to the top level: ring. 
+// choose packets using an arbiter (based on cycle number for now?)
+Packet Router::packet_to_send(int input_port) {
+
+    
+}
+
+
+// todo: packet recieve aka buffer write. PS: when to write the data to the next router?
+
+
+// todo: on-off switch update. The top function, ring, should call this for every router after processing in/out packets
