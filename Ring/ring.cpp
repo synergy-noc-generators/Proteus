@@ -24,18 +24,18 @@ void ring(
 
     static Router node[NUM_NODES]; 
 
-    ap_unit[DATA_WIDTH] link_east[NUM_NODES]; // why not just have a array of router id. Like a adjacent map to fill out. Even we can extend to mesh: one key with 4 elements: 0 E, 1 S, 2 W, 3 N, etc
-    ap_unit[DATA_WIDTH] link_west[NUM_NODES];
+    Packet link_east[NUM_NODES]; // MODIFICATION: instead of the datawith define, we can make it packet granularity wire
+    Packet link_west[NUM_NODES];
 
     INT16 onoff_switch_east[NUM_NODES]; // 16 bits reserve for credit-base switch in the future
     INT16 onoff_switch_west[NUM_NODES]; // 16 bits reserve for credit-base switch in the future
     int buffer_size = 4;
 
-    node[0] = Router(0,buffer_size,routing_algorithm,traffic_pattern,NUM_NODES,num_packet_per_node
-                    link_east[0],link_west[0], link_east[NUM_NODES-1], link_west[1]); // do not understand
+    node[0] = Router(0,buffer_size,routing_algorithm,traffic_pattern,NUM_NODES,num_packet_per_node,
+                    link_east[0],link_west[0], link_east[NUM_NODES-1], link_west[1]); // THINK: maybe the router level do not need to know the id of next, Ring level is good enough. The router provide the data when needed, and ring allocate it to the right place
     for (int i = 1 ; i < NUM_NODES -1; i++)
     {
-        node[i] = Router(i,buffer_size,routing_algorithm,traffic_pattern,NUM_NODES,num_packet_per_node
+        node[i] = Router(i,buffer_size,routing_algorithm,traffic_pattern,NUM_NODES,num_packet_per_node,
                     link_east[i],link_west[i],link_east[i-1],link_west[i+1]);
     }
         node[NUM_NODES-1] = Router(NUM_NODES-1,buffer_size,routing_algorithm,traffic_pattern,NUM_NODES,num_packet_per_node
