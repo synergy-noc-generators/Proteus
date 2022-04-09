@@ -3,53 +3,59 @@
 #include "common.h"
 #include <stdio.h>
 
-
-Router::Router(int router_id, int buffer_size, int routing_algorithm, int traffic_pattern, int num_node) {
-    this.router_id = router_id;
-    this.num_node = num_node;
-    this.buffer_threshold = 1;
-    this.buffer_size = 4;
-    this.buffer_west = {}; // in_buffer, no out_buffer
-    this.west_route_info = {};
-    this.packet_idle_cycle_west = {};
-    
-    this.buffer_east = {}; // in_buffer, no out_buffer
-    this.east_route_info = {};
-    this.packet_idle_cycle_east = {};
-    
-    this.buffer_local = {};
-    this.local_route_info = {};
-    this.packet_idle_cycle_local = {};
-    
-    this.packet_wait_generate = 0;
-    this.packets_recieved = 0;
-    this.packets_sent = 0;
-    this.latency_add_up = 0;
-    this.max_latency = 0;
-    this.routing_algorithm = routing_algorithm;
-    this.traffic_pattern = traffic_pattern;
-    this.backpressure = false;
-    this.deadlock = false;
+Router::Router( ) {
+    this->num_node = NUM_NODES;
 }
 
-void Router::deadlock_check(int packet_idle_cycle) {
-    if (VN::deadlock_check(packet_idle_cycle)) {
+Router::Router(int router_id, int routing_algorithm, int traffic_pattern, int num_node) {
+    this->router_id = router_id;
+    this->num_node = num_node;
+    this->buffer_threshold = 1;
+
+    // Commenting all array initaization as getting this error
+    // error: assigning to an array from an initializer list
+    //
+//     this->buffer_west = {}; // in_buffer, no out_buffer
+//     this->west_route_info = {0};
+//     this->packet_idle_cycle_west = {0};
+    
+//     this->buffer_east = {}; // in_buffer, no out_buffer
+//     this->east_route_info = {0};
+//     this->packet_idle_cycle_east = {0};
+    
+//     this->buffer_local = {};
+//     this->local_route_info = {0};
+//     this->packet_idle_cycle_local = {0};
+    
+    this->packet_wait_generate = 0;
+    this->packets_recieved = 0;
+    this->packets_sent = 0;
+    this->latency_add_up = 0;
+    this->max_latency = 0;
+    this->routing_algorithm = routing_algorithm;
+    this->traffic_pattern = traffic_pattern;
+    this->backpressure = false;
+    this->deadlock = false;
+}
+
+void Router::deadlock_check(int packet_idle_cycle, VN vn) {
+    if (vn.deadlock_check(packet_idle_cycle)) {
         std::cout << "Possible Deadlock Detected" << std::endl;
-        this.deadlock = true;
+        this->deadlock = true;
     }
 }
 
-void Router::deadlock_check_all() {
-    for (int i = 0; i < this.buffer_size; i++) {
-        deadlock_check(packet_idle_cycle_east[i]);
-        deadlock_check(packet_idle_cycle_west[i]);
-        deadlock_check(packet_idle_cycle_local[i]);
+void Router::deadlock_check_all(VN vn) {
+    for (int i = 0; i < BUFFER_SIZE; i++) {
+        deadlock_check(packet_idle_cycle_east[i],vn);
+        deadlock_check(packet_idle_cycle_west[i],vn);
+        deadlock_check(packet_idle_cycle_local[i],vn);
     }
 }
 
-int Router::get_num_valid_buffer(Packet[] buffers) {
+int Router::get_num_valid_buffer(Packet buffers[BUFFER_SIZE]) {
     int count = 0;
-    for (int i = 0; i < this.buffer_size; i++) {
+    for (int i = 0; i < BUFFER_SIZE; i++) {
         if (!buffers[i].valid) {
             count++;
         }
@@ -57,8 +63,8 @@ int Router::get_num_valid_buffer(Packet[] buffers) {
     return count;
 }
 
-int Router::find_empty_buffer(Packet[] buffers) {
-    for (int i = 0; i < this.buffer_size; i++) {
+int Router::find_empty_buffer(Packet buffers[BUFFER_SIZE]) {
+    for (int i = 0; i < BUFFER_SIZE; i++) {
         if (!buffers[i].valid) {
             return i;
         }
@@ -67,10 +73,10 @@ int Router::find_empty_buffer(Packet[] buffers) {
 }
 
 // the direction of the selected packets should not affect the arbitration of input 
-int Router::find_oldest_packet(Packet[] buffers) { 
+int Router::find_oldest_packet(Packet buffers[BUFFER_SIZE]) { 
     int location = ERROR;
     int timestamp_least = ERROR;
-    for (int i = 0; i < this.buffer_size; i++) {
+    for (int i = 0; i < BUFFER_SIZE; i++) {
         if (buffers[i].valid) {
             if (timestamp_least == ERROR || buffers[i].timestamp < timestamp_least) {
                 timestamp_least = buffers[i].timestamp;
@@ -82,39 +88,39 @@ int Router::find_oldest_packet(Packet[] buffers) {
 }
 
 INT16 Router::dest_compute() {      //For now assuming only 1 type of trafic pattern.
-//     if (this.traffic_pattern == 0) { // bit_compliment
-        return this.num_node - this.router_id - 1; // this is ring based
+//     if (this->traffic_pattern == 0) { // bit_compliment
+        return this->num_node - this->router_id - 1; // this->is ring based
 //     }
 }
 
 void Router::packet_add_to_queue(VN vn) {
     if (vn.packet_if_send()) {
-        this.packet_wait_generate += 1; // we do not record the cycle here, only calculate latency once the package enter the network
+        this->packet_wait_generate += 1; // we do not record the cycle here, only calculate latency once the package enter the network
     }
 }
 
 // try to generate packets and put into local buffers
 void Router::packet_produce(VN vn) {
-    int location = find_empty_buffer(this.buffer_local);
-    if (location != ERROR && this.packet_wait_generate > 0) {
-        this.buffer_local[location].valid = true;
-        this.buffer_local[location].source = this.router_id;
-        this.buffer_local[location].timestamp = vn.get_current_cycle();
-        this.buffer_local[location].dest = dest_compute();
-        this.packets_sent++;
-        this.packet_wait_generate--;
+    int location = find_empty_buffer(this->buffer_local);
+    if (location != ERROR && this->packet_wait_generate > 0) {
+        this->buffer_local[location].valid = true;
+        this->buffer_local[location].source = this->router_id;
+        this->buffer_local[location].timestamp = vn.get_current_cycle();
+        this->buffer_local[location].dest = dest_compute();
+        this->packets_sent++;
+        this->packet_wait_generate--;
     }
 }
 
 void Router::packet_consume(Packet packet, VN vn) {
-    this.packets_recieved++;
+    this->packets_recieved++;
     int latency = vn.get_current_cycle() - packet.timestamp;
-    this.max_latency = latency > max_latency ? latency : max_latency;
-    this.latency_add_up += latency;
+    this->max_latency = latency > max_latency ? latency : max_latency;
+    this->latency_add_up += latency;
 }
 
 void Router::packet_idle_cycle_update() {
-    for (int i = 0; i < this.buffer_size; i++) {
+    for (int i = 0; i < BUFFER_SIZE; i++) {
         if (buffer_east[i].valid) {
             packet_idle_cycle_east[i] += 1;
         }
@@ -141,7 +147,7 @@ bool Router::Buffer_Write(Packet packet, int buffer_location) {
     if (buffer_location == LOCAL) {
         return false;
     } else if (buffer_location == EAST) {
-        int location = find_empty_buffer(this.buffer_east);
+        int location = find_empty_buffer(this->buffer_east);
         if (location == ERROR) {
             return false;
         }
@@ -149,7 +155,7 @@ bool Router::Buffer_Write(Packet packet, int buffer_location) {
         buffer_east[location] = packet;
         return true;
     } else if (buffer_location == WEST) {
-        int location = find_empty_buffer(this.buffer_west);
+        int location = find_empty_buffer(this->buffer_west);
         if (location == ERROR) {
             return false;
         }
@@ -165,18 +171,18 @@ bool Router::Buffer_Write(Packet packet, int buffer_location) {
 INT16 Router::Output_Compute(INT16 dst_id, int input_port) {
     static bool random_counter = false; // fake random number decider: false -> east, true -> west
     random_counter = !random_counter;
-    if (this.routing_algorithm == 0) { // random_oblivious
+    if (this->routing_algorithm == 0) { // random_oblivious
         if (input_port == LOCAL) {
             int go_east_hop = 0;
             int go_west_hop = 0;
-            if (dst_id == this.router_id) {
+            if (dst_id == this->router_id) {
                 return EVICT;
-            } else if (dst_id < this.router_id) {       
-                go_west_hop = this.router_id - dst_id;
-                go_east_hop = (this.num_node - this.router_id) + dst_id;
+            } else if (dst_id < this->router_id) {       
+                go_west_hop = this->router_id - dst_id;
+                go_east_hop = (this->num_node - this->router_id) + dst_id;
             } else {
-                go_west_hop = this.router_id + (this.num_node - dst_id);
-                go_east_hop = this.router_id - dst_id;
+                go_west_hop = this->router_id + (this->num_node - dst_id);
+                go_east_hop = this->router_id - dst_id;
             }
 
             if (go_east_hop == go_west_hop) {
@@ -185,12 +191,12 @@ INT16 Router::Output_Compute(INT16 dst_id, int input_port) {
                 return go_east_hop > go_west_hop ? WEST : EAST;
             }
         } else if (input_port == EAST) {
-            if (dst_id == this.router_id) {
+            if (dst_id == this->router_id) {
                 return EVICT;
             }
             return WEST;
         } else if (input_port == WEST) {
-            if (dst_id == this.router_id) {
+            if (dst_id == this->router_id) {
                 return EVICT;
             }
             return EAST;
@@ -201,14 +207,14 @@ INT16 Router::Output_Compute(INT16 dst_id, int input_port) {
 }
 
 void Router::Router_Compute() {
-    for (int i = 0; i < this.buffer_size; i++) {
+    for (int i = 0; i < BUFFER_SIZE; i++) {
         east_route_info[i] = Output_Compute(buffer_east[i].dest, EAST);
         west_route_info[i] = Output_Compute(buffer_west[i].dest, WEST);
         local_route_info[i] = Output_Compute(buffer_local[i].dest, LOCAL);
     }
 }
 
-// This switch allocator will also done buffer_read and return the packet for Link Traversal
+// this->switch allocator will also done buffer_read and return the packet for Link Traversal
 Packet Router::Switch_Allocator(INT16 output_port_on_off, int output_port) {
     // call packet_to_send for different ports and then arbite base on the cycle time of the packets?
     Packet ret;
@@ -218,9 +224,9 @@ Packet Router::Switch_Allocator(INT16 output_port_on_off, int output_port) {
     }
 
     if (output_port == WEST) {
-        int location = find_oldest_packet(this.buffer_east);
+        int location = find_oldest_packet(this->buffer_east);
         if (location == ERROR && east_route_info[location] == EVICT) {
-            location = find_oldest_packet(this.buffer_local);
+            location = find_oldest_packet(this->buffer_local);
             if (local_route_info[location] == WEST) {
                 packet_idle_cycle_local[location] = 0;
                 ret = buffer_local[location];
@@ -233,9 +239,9 @@ Packet Router::Switch_Allocator(INT16 output_port_on_off, int output_port) {
             buffer_east[location].valid = false;
         }
     } else if (output_port == EAST) {
-        int location = find_oldest_packet(this.buffer_west);
+        int location = find_oldest_packet(this->buffer_west);
         if (location == ERROR && west_route_info[location] == EVICT) {
-            location = find_oldest_packet(this.buffer_local);
+            location = find_oldest_packet(this->buffer_local);
             if (local_route_info[location] == EAST) {
                 packet_idle_cycle_local[location] = 0;
                 ret = buffer_local[location];
@@ -255,11 +261,11 @@ Packet Router::Switch_Allocator(INT16 output_port_on_off, int output_port) {
 // have a function has parameter of the buffer write data, then another function for different output port packet return for link traversal
 void Router::router_phase_one(Packet east_input, Packet west_input, VN vn) {
     // deadlock check
-    deadlock_check_all();
+    deadlock_check_all(vn);
 
     // consume the packets with EVICT mark at the start?
     // TODO: What happens to packet with route_info as EAST or WEST.
-    for (int i = 0; i < this.buffer_size; i++) {
+    for (int i = 0; i < BUFFER_SIZE; i++) {
         if (east_route_info[i] == EVICT) {
             packet_consume(buffer_east[i], vn);
             buffer_east[i].valid = false;
@@ -298,18 +304,18 @@ void Router::router_phase_one(Packet east_input, Packet west_input, VN vn) {
 // send packets from buffer to links
 Packet Router::router_phase_two(INT16 output_port_on_off, int output_dirn) {
     // switch allocation, buffer read, return the packet
-    Packet ret = Switch_Allocator(output_port_on_off, output_port);
+    Packet ret = Switch_Allocator(output_port_on_off, output_dirn);
     return ret;
 }
 
 // todo: on-off switch update after link traversal. Q: When to updaten backpressure
 INT16 Router::on_off_switch_update(int input_port) {
     if (input_port == EAST) {
-        this.backpressure = get_num_valid_buffer(buffer_east) <= this.buffer_threshold;
-        return this.backpressure;
+        this->backpressure = get_num_valid_buffer(buffer_east) <= this->buffer_threshold;
+        return this->backpressure;
     } else if (input_port == WEST) {
-        this.backpressure = get_num_valid_buffer(buffer_west) <= this.buffer_threshold;
-        return this.backpressure;
+        this->backpressure = get_num_valid_buffer(buffer_west) <= this->buffer_threshold;
+        return this->backpressure;
     }
 
     return false;

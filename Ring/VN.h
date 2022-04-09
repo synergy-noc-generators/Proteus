@@ -11,7 +11,7 @@ class VN {
     int num_node;
     
     int current_cycle;
-}
+
 
 public:
     VN(int num_node);
