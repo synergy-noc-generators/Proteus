@@ -40,7 +40,7 @@ Router::Router(int router_id, int routing_algorithm, int traffic_pattern, int nu
 
 void Router::deadlock_check(int packet_idle_cycle, VN vn) {
     if (vn.deadlock_check(packet_idle_cycle)) {
-        std::cout << "Possible Deadlock Detected in node "<< this->router_id << ", current idle cycle for this packet = "<< packet_idle_cycle  << std::endl;
+        //std::cout << "Possible Deadlock Detected in node "<< this->router_id << ", current idle cycle for this packet = "<< packet_idle_cycle  << std::endl;
         this->deadlock = true;
     }
 //     else
@@ -93,7 +93,7 @@ int Router::find_oldest_packet(Packet buffers[BUFFER_SIZE]) {
 
 INT16 Router::dest_compute() {      //For now assuming only 1 type of trafic pattern.
 //     if (this->traffic_pattern == 0) { // bit_compliment
-        return this->num_node - this->router_id - 1; // this->is ring based
+        return NUM_NODES - this->router_id - 1; // this->is ring based
 //     }
 }
 
@@ -113,9 +113,10 @@ void Router::packet_produce(VN vn) {
         this->buffer_local[location].dest = dest_compute();
         this->packets_sent++;
         this->packet_wait_generate--;
+        //std::cout << "packet generated in node "<< this->router_id << " At time :"<<this->buffer_local[location].timestamp << "Going to: " << this->buffer_local[location].dest << std::endl;
     }
     
-//         std::cout << "packet generated in node "<< this->router_id << " At time :"<<this->buffer_local[location].timestamp << std::endl;
+
 }
 
 void Router::packet_consume(Packet packet, VN vn) {
@@ -188,7 +189,7 @@ INT16 Router::Output_Compute(INT16 dst_id, int input_port) {
                 go_east_hop = (this->num_node - this->router_id) + dst_id;
             } else {
                 go_west_hop = this->router_id + (this->num_node - dst_id);
-                go_east_hop = this->router_id - dst_id;
+                go_east_hop = dst_id - this->router_id;
             }
 
             if (go_east_hop == go_west_hop) {
@@ -210,35 +211,46 @@ INT16 Router::Output_Compute(INT16 dst_id, int input_port) {
             return ERROR;
         }
     }
+
+    return ERROR;
 }
 
 void Router::Router_Compute() {
     for (int i = 0; i < BUFFER_SIZE; i++) {
-        east_route_info[i] = Output_Compute(buffer_east[i].dest, EAST);
-        west_route_info[i] = Output_Compute(buffer_west[i].dest, WEST);
-        local_route_info[i] = Output_Compute(buffer_local[i].dest, LOCAL);
+    	if (buffer_east[i].valid) {
+    		east_route_info[i] = Output_Compute(buffer_east[i].dest, EAST);
+    	}
+
+    	if (buffer_west[i].valid) {
+    		west_route_info[i] = Output_Compute(buffer_west[i].dest, WEST);
+    	}
+
+    	if (buffer_local[i].valid) {
+    		local_route_info[i] = Output_Compute(buffer_local[i].dest, LOCAL);
+    		//printf("local route info %d: %d \n", i, (int)local_route_info[i]);
+    	}
+
     }
 }
 
 // this->switch allocator will also done buffer_read and return the packet for Link Traversal
-Packet Router::Switch_Allocator(INT16 output_port_on_off, int output_port) {
+Packet Router::Switch_Allocator(INT16 backpressure, int output_port) {
     // call packet_to_send for different ports and then arbite base on the cycle time of the packets?
     Packet ret;
     ret.valid = false;
-    if (!output_port_on_off) {
+    if (backpressure) {
         return ret;
     }
 
     if (output_port == WEST) {
         int location = find_oldest_packet(this->buffer_east);
-        if (location == ERROR && east_route_info[location] == EVICT) {
+        if (location == ERROR || (location != ERROR && east_route_info[location] == EVICT)) {
             location = find_oldest_packet(this->buffer_local);
             if (local_route_info[location] == WEST) {
                 packet_idle_cycle_local[location] = 0;
                 ret = buffer_local[location];
                 buffer_local[location].valid = false;
             }
-            return ret;
         } else {
             packet_idle_cycle_east[location] = 0;
             ret = buffer_east[location];
@@ -246,14 +258,13 @@ Packet Router::Switch_Allocator(INT16 output_port_on_off, int output_port) {
         }
     } else if (output_port == EAST) {
         int location = find_oldest_packet(this->buffer_west);
-        if (location == ERROR && west_route_info[location] == EVICT) {
+        if (location == ERROR || ( location != ERROR && west_route_info[location] == EVICT)) {
             location = find_oldest_packet(this->buffer_local);
             if (local_route_info[location] == EAST) {
                 packet_idle_cycle_local[location] = 0;
                 ret = buffer_local[location];
                 buffer_local[location].valid = false;
             }
-            return ret;
         } else {
             packet_idle_cycle_west[location] = 0;
             ret = buffer_west[location];
@@ -272,19 +283,19 @@ void Router::router_phase_one(Packet east_input, Packet west_input, VN vn) {
     // consume the packets with EVICT mark at the start?
     // TODO: What happens to packet with route_info as EAST or WEST.
     for (int i = 0; i < BUFFER_SIZE; i++) {
-        if (east_route_info[i] == EVICT) {
+        if (buffer_east[i].valid && east_route_info[i] == EVICT) {
             packet_consume(buffer_east[i], vn);
             buffer_east[i].valid = false;
             packet_idle_cycle_east[i] = 0;
         }
 
-        if (west_route_info[i] == EVICT) {
+        if (buffer_west[i].valid && west_route_info[i] == EVICT) {
             packet_consume(buffer_west[i], vn);
             buffer_west[i].valid = false;
             packet_idle_cycle_west[i] = 0;
         }
 
-        if (local_route_info[i] == EVICT) {
+        if (buffer_local[i].valid && local_route_info[i] == EVICT) {
             packet_consume(buffer_local[i], vn);
             buffer_local[i].valid = false;
             packet_idle_cycle_local[i] = 0;
@@ -301,7 +312,7 @@ void Router::router_phase_one(Packet east_input, Packet west_input, VN vn) {
     bool west_op = Buffer_Write(west_input, WEST);
 
     if (!east_op || !west_op) {
-        std::cout << "Something goes wrong with Buffer Write" << std::endl;
+        //std::cout << "Something goes wrong with Buffer Write" << std::endl;
         return;
     }
     packet_idle_cycle_update() ;
@@ -309,9 +320,10 @@ void Router::router_phase_one(Packet east_input, Packet west_input, VN vn) {
     Router_Compute();
 }
 // send packets from buffer to links
-Packet Router::router_phase_two(INT16 output_port_on_off, int output_dirn) {
+Packet Router::router_phase_two(INT16 backpressure, int output_dirn) {
     // switch allocation, buffer read, return the packet
-    Packet ret = Switch_Allocator(output_port_on_off, output_dirn);
+    Packet ret = Switch_Allocator(backpressure, output_dirn);
+    //printf("Packet going %d: %d %d %d %d \n", output_dirn, ret.valid, (int)ret.timestamp, (int)ret.source, (int)ret.dest);
     return ret;
 }
 
@@ -330,5 +342,9 @@ INT16 Router::on_off_switch_update(int input_port) {
 
 int Router::get_packets_sent(){
         return this->packets_sent;
-    
+}
+
+int Router::get_packets_recieved() {
+	return this->packets_recieved;
+
 }

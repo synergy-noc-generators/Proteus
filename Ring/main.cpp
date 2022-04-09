@@ -12,8 +12,8 @@ int main ()
 {
     
 INT16       deadlock_cycles=1000;
-INT16       num_packets_per_node=10;
-INT16       inject_rate=1;
+INT16       num_packets_per_node=200;
+INT16       inject_rate=10;
 INT16       num_packets_sent[NUM_NODES];
 INT16       num_packets_recieved[NUM_NODES];
 INT16       avg_latency[NUM_NODES];

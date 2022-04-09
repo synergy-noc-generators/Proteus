@@ -10,16 +10,16 @@ class Router {
 //     static int buffer_size; // should be >= threshold since we are using on-off switch for now, assume 1 cycle of passing the information now
     //Router.h:12:35: error: array bound is not an integer constant before ‘]’ token -> Getting this error so making buffer size as constant in common.h 
     Packet buffer_east[BUFFER_SIZE];
-    INT16 east_route_info[BUFFER_SIZE];
-    INT16 packet_idle_cycle_east[BUFFER_SIZE]= {0};
+    INT16 east_route_info[BUFFER_SIZE] = {3, 3, 3, 3};
+    INT16 packet_idle_cycle_east[BUFFER_SIZE]= {0, 0, 0, 0};
 
     Packet buffer_west[BUFFER_SIZE];
-    INT16 west_route_info[BUFFER_SIZE];
-    INT16 packet_idle_cycle_west[BUFFER_SIZE]= {0};
+    INT16 west_route_info[BUFFER_SIZE] = {3, 3, 3, 3};
+    INT16 packet_idle_cycle_west[BUFFER_SIZE]= {0, 0, 0, 0};
     
     Packet buffer_local[BUFFER_SIZE];
-    INT16 local_route_info[BUFFER_SIZE];
-    INT16 packet_idle_cycle_local[BUFFER_SIZE]= {0};
+    INT16 local_route_info[BUFFER_SIZE] = {3, 3, 3, 3};
+    INT16 packet_idle_cycle_local[BUFFER_SIZE]= {0, 0, 0, 0};
 
     int packet_wait_generate; // packets waiting for generating
     int packets_recieved;
@@ -56,6 +56,7 @@ public:
     Packet router_phase_two(INT16 output_port_on_off, int output_dirn);
     INT16 on_off_switch_update(int input_port);
     int get_packets_sent();
+    int get_packets_recieved();
 };
 
 

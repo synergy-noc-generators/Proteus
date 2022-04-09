@@ -41,17 +41,17 @@ void ring(
 
 //     node[0] = Router(0,buffer_size,routing_algorithm,traffic_pattern,NUM_NODES,num_packet_per_node,
 //             link_east[0],link_west[0], link_east[NUM_NODES-1], link_west[1]); // THINK: maybe the router level do not need to know the id of next, Ring level is good enough. The router provide the data when needed, and ring allocate it to the right place
-    for (int i = 0 ; i < NUM_NODES -1; i++)
+    for (int i = 0 ; i < NUM_NODES; i++)
     {
         node[i] = Router(i,routing_algorithm,traffic_pattern,NUM_NODES);
     }
 //     node[NUM_NODES-1] = Router(NUM_NODES-1,buffer_size,routing_algorithm,traffic_pattern,NUM_NODES,num_packet_per_node
 //             link_east[NUM_NODES-1],link_west[NUM_NODES-1],link_east[NUM_NODES-2],link_west[0]);
     int total_packets_recieved = 0;
+    int total_packets_sent = 0;
 //     while(total_packets_recieved < num_packets_per_node*NUM_NODES)
-    for( int j = 0; j< 100000; j++)
+    for( int j = 0; j< 10000; j++)
     {
-        noc_vn.inc_cycle();
         node[0].router_phase_one( link_west[1],link_east[NUM_NODES-1], noc_vn);
 
         for (int i = 1 ; i < (NUM_NODES-1); i++)
@@ -91,13 +91,22 @@ void ring(
                 link_east[i] = node[i].router_phase_two(onoff_switch_west[i+1], EAST);
 
         //          This Function will help in getting the function statistics
+            //printf("LInk West %d: %d %d %d %d \n", i, link_west[i].valid, (int)link_west[i].timestamp, (int)link_west[i].source, (int)link_west[i].dest);
+            //printf("LInk East %d: %d %d %d %d \n", i, link_east[i].valid, (int)link_east[i].timestamp, (int)link_east[i].source, (int)link_east[i].dest);
         }    
             
-       total_packets_recieved = 0; 
+       total_packets_recieved = 0;
+       total_packets_sent = 0;
+
        for(int i = 0 ; i< NUM_NODES; i++)
         {   
-//             std::cout << "Node : "<<i<< " , num packets added till now = "<< node[i].get_packets_sent() << std::endl;
-            total_packets_recieved += node[i].get_packets_sent();
+            //std::cout << "Node : "<<i<< " , num packets added till now = "<< node[i].get_packets_sent() << std::endl;
+            total_packets_recieved += node[i].get_packets_recieved();
+            total_packets_sent += node[i].get_packets_sent();
         }
+        noc_vn.inc_cycle();
     }
+    //printf("packet recieved: %d", (int)total_packets_recieved);
+    //printf("packet sent: %d", (int)total_packets_sent);
+
 }
