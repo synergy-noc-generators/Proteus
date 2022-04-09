@@ -4,23 +4,23 @@
 #include <stdio.h>
 
 void ring( 
-        INT16       deadlock_cycles,
-        INT16       num_packets_per_node,
-        INT16       inject_rate,
-        INT16       num_packets_sent[NUM_NODES],
-        INT16       num_packets_recieved[NUM_NODES],
-        INT16       avg_latency[NUM_NODES], 
-        INT16       max_latency[NUM_NODES], 
-        INT16     deadlock_detected[NUM_NODES]
+        int       deadlock_cycles,
+        int       num_packets_per_node,
+        int       packet_inject_period, // EX. =10, every 10 cycles, a packet will be generated at each node
+        int       num_packets_sent[NUM_NODES],
+        int       num_packets_recieved[NUM_NODES],
+        int       added_latency[NUM_NODES], 
+        int       max_latency[NUM_NODES], 
+        int       deadlock_detected[NUM_NODES]
         )
 {
 #pragma HLS interface s_axilite register port=return
 #pragma HLS interface s_axilite register port=deadlock_cycles
-#pragma HLS interface s_axilite register port=inject_rate
+#pragma HLS interface s_axilite register port=packet_inject_period
 #pragma HLS interface s_axilite register port=num_packets_sent
 #pragma HLS interface s_axilite register port=num_packets_per_node
 #pragma HLS interface s_axilite register port=num_packets_recieved
-#pragma HLS interface s_axilite register port=avg_latency
+#pragma HLS interface s_axilite register port=added_latency
 #pragma HLS interface s_axilite register port=max_latency
 #pragma HLS interface s_axilite register port=deadlock_detected
 
@@ -30,27 +30,21 @@ void ring(
     int routing_algorithm = 0;
     int traffic_pattern = 0;
 
-    noc_vn = VN(deadlock_cycles, num_packets_per_node, inject_rate, routing_algorithm, traffic_pattern,NUM_NODES);
+    noc_vn = VN(deadlock_cycles, num_packets_per_node, packet_inject_period, routing_algorithm, traffic_pattern,NUM_NODES);
 
-    Packet link_east[NUM_NODES]; // MODIFICATION: instead of the datawith define, we can make it packet granularity wire
+    Packet link_east[NUM_NODES];
     Packet link_west[NUM_NODES];
 
     INT16 onoff_switch_east[NUM_NODES]; // 16 bits reserve for credit-base switch in the future
     INT16 onoff_switch_west[NUM_NODES]; // 16 bits reserve for credit-base switch in the future
-//     int buffer_size = 4;
 
-//     node[0] = Router(0,buffer_size,routing_algorithm,traffic_pattern,NUM_NODES,num_packet_per_node,
-//             link_east[0],link_west[0], link_east[NUM_NODES-1], link_west[1]); // THINK: maybe the router level do not need to know the id of next, Ring level is good enough. The router provide the data when needed, and ring allocate it to the right place
     for (int i = 0 ; i < NUM_NODES; i++)
     {
-        node[i] = Router(i,routing_algorithm,traffic_pattern,NUM_NODES);
+        node[i] = Router(i,routing_algorithm,traffic_pattern);
     }
-//     node[NUM_NODES-1] = Router(NUM_NODES-1,buffer_size,routing_algorithm,traffic_pattern,NUM_NODES,num_packet_per_node
-//             link_east[NUM_NODES-1],link_west[NUM_NODES-1],link_east[NUM_NODES-2],link_west[0]);
+
     int total_packets_recieved = 0;
-    int total_packets_sent = 0;
-//     while(total_packets_recieved < num_packets_per_node*NUM_NODES)
-    for( int j = 0; j< 10000; j++)
+    while(total_packets_recieved < num_packets_per_node*NUM_NODES)
     {
         node[0].router_phase_one( link_west[1],link_east[NUM_NODES-1], noc_vn);
 
@@ -93,18 +87,24 @@ void ring(
         //          This Function will help in getting the function statistics
             //printf("LInk West %d: %d %d %d %d \n", i, link_west[i].valid, (int)link_west[i].timestamp, (int)link_west[i].source, (int)link_west[i].dest);
             //printf("LInk East %d: %d %d %d %d \n", i, link_east[i].valid, (int)link_east[i].timestamp, (int)link_east[i].source, (int)link_east[i].dest);
-        }    
-            
-       total_packets_recieved = 0;
-       total_packets_sent = 0;
+        }   
 
-       for(int i = 0 ; i< NUM_NODES; i++)
+        total_packets_recieved = 0;
+        for(int i = 0 ; i< NUM_NODES; i++)
         {   
-            //std::cout << "Node : "<<i<< " , num packets added till now = "<< node[i].get_packets_sent() << std::endl;
             total_packets_recieved += node[i].get_packets_recieved();
-            total_packets_sent += node[i].get_packets_sent();
         }
         noc_vn.inc_cycle();
+    }
+
+    for(int i = 0 ; i< NUM_NODES; i++)
+    {   
+        //std::cout << "Node : "<<i<< " , num packets added till now = "<< node[i].get_packets_sent() << std::endl;
+        num_packets_recieved[i] = node[i].get_packets_recieved();
+        num_packets_sent[i] = node[i].get_packets_sent();
+        added_latency[i] =  node[i].get_added_latency();
+        max_latency[i] = node[i].get_max_latency();
+        deadlock_detected[i] = node[i].get_deadlock_info();
     }
     //printf("packet recieved: %d", (int)total_packets_recieved);
     //printf("packet sent: %d", (int)total_packets_sent);

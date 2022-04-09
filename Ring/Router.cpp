@@ -3,30 +3,13 @@
 #include "common.h"
 #include <stdio.h>
 
-Router::Router( ) {
-    this->num_node = NUM_NODES;
+Router::Router() {
+
 }
 
-Router::Router(int router_id, int routing_algorithm, int traffic_pattern, int num_node) {
+Router::Router(int router_id, int routing_algorithm, int traffic_pattern) {
     this->router_id = router_id;
-    this->num_node = num_node;
     this->buffer_threshold = 1;
-
-    // Commenting all array initaization as getting this error
-    // error: assigning to an array from an initializer list
-    //
-//     this->buffer_west = {}; // in_buffer, no out_buffer
-//     this->west_route_info = {0};
-//     this->packet_idle_cycle_west = {0};
-    
-//     this->buffer_east = {}; // in_buffer, no out_buffer
-//     this->east_route_info = {0};
-//     this->packet_idle_cycle_east = {0};
-    
-//     this->buffer_local = {};
-//     this->local_route_info = {0};
-//     this->packet_idle_cycle_local = {0};
-    
     this->packet_wait_generate = 0;
     this->packets_recieved = 0;
     this->packets_sent = 0;
@@ -43,10 +26,7 @@ void Router::deadlock_check(int packet_idle_cycle, VN vn) {
         //std::cout << "Possible Deadlock Detected in node "<< this->router_id << ", current idle cycle for this packet = "<< packet_idle_cycle  << std::endl;
         this->deadlock = true;
     }
-//     else
-//     {
-//         this->deadlock = false;
-//     }
+
 }
 
 void Router::deadlock_check_all(VN vn) {
@@ -143,9 +123,6 @@ void Router::packet_idle_cycle_update() {
     }
 }
 
-
-// todo: packet recieve aka buffer write. Before do link traversal, we should make sure on-off switch is true. Otherwise the link should not be occupied
-// return true if correct behavior detected, false otherwise
 bool Router::Buffer_Write(Packet packet, int buffer_location) {
     if (!packet.valid) {
         return true;
@@ -186,9 +163,9 @@ INT16 Router::Output_Compute(INT16 dst_id, int input_port) {
                 return EVICT;
             } else if (dst_id < this->router_id) {       
                 go_west_hop = this->router_id - dst_id;
-                go_east_hop = (this->num_node - this->router_id) + dst_id;
+                go_east_hop = (NUM_NODES - this->router_id) + dst_id;
             } else {
-                go_west_hop = this->router_id + (this->num_node - dst_id);
+                go_west_hop = this->router_id + (NUM_NODES - dst_id);
                 go_east_hop = dst_id - this->router_id;
             }
 
@@ -235,7 +212,6 @@ void Router::Router_Compute() {
 
 // this->switch allocator will also done buffer_read and return the packet for Link Traversal
 Packet Router::Switch_Allocator(INT16 backpressure, int output_port) {
-    // call packet_to_send for different ports and then arbite base on the cycle time of the packets?
     Packet ret;
     ret.valid = false;
     if (backpressure) {
@@ -281,7 +257,6 @@ void Router::router_phase_one(Packet east_input, Packet west_input, VN vn) {
     deadlock_check_all(vn);
 
     // consume the packets with EVICT mark at the start?
-    // TODO: What happens to packet with route_info as EAST or WEST.
     for (int i = 0; i < BUFFER_SIZE; i++) {
         if (buffer_east[i].valid && east_route_info[i] == EVICT) {
             packet_consume(buffer_east[i], vn);
@@ -327,7 +302,6 @@ Packet Router::router_phase_two(INT16 backpressure, int output_dirn) {
     return ret;
 }
 
-// todo: on-off switch update after link traversal. Q: When to updaten backpressure
 INT16 Router::on_off_switch_update(int input_port) {
     if (input_port == EAST) {
         this->backpressure = get_num_valid_buffer(buffer_east) <= this->buffer_threshold;
@@ -341,10 +315,25 @@ INT16 Router::on_off_switch_update(int input_port) {
 }
 
 int Router::get_packets_sent(){
-        return this->packets_sent;
+    return this->packets_sent;
 }
 
 int Router::get_packets_recieved() {
 	return this->packets_recieved;
+}
 
+int Router::get_max_latency() {
+    return this->max_latency;
+}
+
+int Router::get_added_latency() {
+    return this->latency_add_up;
+}
+
+int Router::get_deadlock_info() {
+    if (this->deadlock) {
+        return 1;
+    } else {
+        return 0;
+    }
 }

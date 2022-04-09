@@ -4,17 +4,17 @@
 VN::VN(int num_node) {
     deadlock_threshold = 1000;
     packets_per_node = 10;
-    inject_rate = 10;    // the unit here is cycle
+    packet_inject_period = 10;    // the unit here is cycle
     routing_algorithm = 0; // every number will represent a algorithm, 0 is for random oblivious
     traffic_pattern = 0; // every number will represent a traffic pattern, 0 is for bit_compliement
     current_cycle = 0;
     this->num_node = num_node;
 }
 
-VN::VN(int deadlock_threshold, int packets_per_node, int inject_rate, int routing_algorithm, int traffic_pattern, int num_node) {
+VN::VN(int deadlock_threshold, int packets_per_node, int packet_inject_period, int routing_algorithm, int traffic_pattern, int num_node) {
     this->deadlock_threshold = deadlock_threshold;
     this->packets_per_node = packets_per_node;
-    this->inject_rate = inject_rate;    // the unit here is cycle
+    this->packet_inject_period = packet_inject_period;    // the unit here is cycle
     this->routing_algorithm = routing_algorithm; // every number will represent a algorithm, 0 is for random oblivious
     this->traffic_pattern = traffic_pattern; // every number will represent a traffic pattern, 0 is for bit_compliement
     this->num_node = num_node;
@@ -26,11 +26,11 @@ bool VN::deadlock_check(int idle_cycle) {
 }
 
 bool VN::packet_if_send() {
-    if (this->current_cycle >= this->packets_per_node * this->inject_rate) {
+    if (this->current_cycle >= this->packets_per_node * this->packet_inject_period) {
         return false;
     }
 
-    return this->current_cycle % this->inject_rate == 0;
+    return this->current_cycle % this->packet_inject_period == 0;
 }
 
 int VN::get_current_cycle() {

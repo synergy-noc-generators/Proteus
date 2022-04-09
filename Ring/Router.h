@@ -5,7 +5,6 @@
 
 class Router {
     int router_id;      //Self ID
-    int num_node;       //Total Number of nodes in the ring
     int buffer_threshold;
 //     static int buffer_size; // should be >= threshold since we are using on-off switch for now, assume 1 cycle of passing the information now
     //Router.h:12:35: error: array bound is not an integer constant before ‘]’ token -> Getting this error so making buffer size as constant in common.h 
@@ -44,8 +43,8 @@ class Router {
     void Router_Compute() ;
 
 public:
-    Router(int router_id,  int routing_algorithm, int traffic_pattern, int num_node);
-    Router( );
+    Router(int router_id,  int routing_algorithm, int traffic_pattern);
+    Router();
     void deadlock_check(int packet_idle_cycle , VN vn);
     int get_num_valid_buffer(Packet buffers[BUFFER_SIZE]);
 //     int find_valid_buffer(Packet buffers);
@@ -57,6 +56,9 @@ public:
     INT16 on_off_switch_update(int input_port);
     int get_packets_sent();
     int get_packets_recieved();
+    int get_max_latency();
+    int get_added_latency();
+    int get_deadlock_info();
 };
 
 
