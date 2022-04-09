@@ -55,6 +55,7 @@ public:
     void router_phase_one(Packet east_input, Packet west_input, VN vn);
     Packet router_phase_two(INT16 output_port_on_off, int output_dirn);
     INT16 on_off_switch_update(int input_port);
+    int get_packets_sent();
 };
 
 

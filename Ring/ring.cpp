@@ -48,11 +48,11 @@ void ring(
 //     node[NUM_NODES-1] = Router(NUM_NODES-1,buffer_size,routing_algorithm,traffic_pattern,NUM_NODES,num_packet_per_node
 //             link_east[NUM_NODES-1],link_west[NUM_NODES-1],link_east[NUM_NODES-2],link_west[0]);
     int total_packets_recieved = 0;
-    while(total_packets_recieved < num_packets_per_node*NUM_NODES)
+//     while(total_packets_recieved < num_packets_per_node*NUM_NODES)
+    for( int j = 0; j< 1000; j++)
     {
         node[0].router_phase_one( link_west[1],link_east[NUM_NODES-1], noc_vn);
 
-            // What to do about onoff?
         for (int i = 1 ; i < (NUM_NODES-1); i++)
         {
             //NOte: The EAST inp will come from West[i+1] amd west inp will come from east[i-1]
@@ -92,8 +92,8 @@ void ring(
         //          This Function will help in getting the function statistics
         }    
             
-       
-//        for(int i = 0 ; i< NUM_NODES; i++)
-//             node[i].get_packets_sent();
+       total_packets_recieved = 0; 
+       for(int i = 0 ; i< NUM_NODES; i++)
+            total_packets_recieved += node[i].get_packets_sent();
     }
 }

@@ -320,3 +320,8 @@ INT16 Router::on_off_switch_update(int input_port) {
 
     return false;
 }
+
+int Router::get_packets_sent(){
+        return this->packets_sent;
+    
+}
