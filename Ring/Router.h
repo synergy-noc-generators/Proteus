@@ -4,10 +4,11 @@
 #include "common.h"
 
 class Router {
-    int router_id;
-    int num_node;
+    int router_id;      //Self ID
+    int num_node;       //Total Number of nodes in the ring
     int buffer_threshold;
     int buffer_size; // should be >= threshold since we are using on-off switch for now, assume 1 cycle of passing the information now
+
     Packet buffer_east[buffer_size];
     INT16 east_route_info[buffer_size];
     INT16 packet_idle_cycle_east[buffer_size];
@@ -38,11 +39,11 @@ public:
     void deadlock_check(int packet_idle_cycle);
     int get_num_valid_buffer(Packet buffers);
     int find_valid_buffer(Packet buffers);
-    INT16 dest_compute();
+    INT16 dest_compute();                   //Calculates the packet destination based on network traffic pattern.
     void packet_add_to_queue(VN vn);
     void packet_produce(VN vn);
     void Router::router_phase_one(Packet east_input, Packet west_input, VN vn);
-    Packet Router::router_phase_two(int output_port_on_off, int output_dirn);
+    Packet Router::router_phase_two(INT16 output_port_on_off, int output_dirn);
     INT16 Router::on_off_switch_update(int input_port);
 }
 

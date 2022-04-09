@@ -81,10 +81,10 @@ int Router::find_oldest_packet(Packet[] buffers) {
     return location;
 }
 
-INT16 Router::dest_compute() {
-    if (this.traffic_pattern == 0) { // bit_compliment
+INT16 Router::dest_compute() {      //For now assuming only 1 type of trafic pattern.
+//     if (this.traffic_pattern == 0) { // bit_compliment
         return this.num_node - this.router_id - 1; // this is ring based
-    }
+//     }
 }
 
 void Router::packet_add_to_queue(VN vn) {
@@ -171,7 +171,7 @@ INT16 Router::Output_Compute(INT16 dst_id, int input_port) {
             int go_west_hop = 0;
             if (dst_id == this.router_id) {
                 return EVICT;
-            } else if (dst_id < this.router_id) {
+            } else if (dst_id < this.router_id) {       
                 go_west_hop = this.router_id - dst_id;
                 go_east_hop = (this.num_node - this.router_id) + dst_id;
             } else {
@@ -209,9 +209,10 @@ void Router::Router_Compute() {
 }
 
 // This switch allocator will also done buffer_read and return the packet for Link Traversal
-Packet Router::Switch_Allocator(int output_port_on_off, int output_port) {
+Packet Router::Switch_Allocator(INT16 output_port_on_off, int output_port) {
     // call packet_to_send for different ports and then arbite base on the cycle time of the packets?
     Packet ret;
+    ret.valid = false;
     if (!output_port_on_off) {
         return ret;
     }
@@ -257,6 +258,7 @@ void Router::router_phase_one(Packet east_input, Packet west_input, VN vn) {
     deadlock_check_all();
 
     // consume the packets with EVICT mark at the start?
+    // TODO: What happens to packet with route_info as EAST or WEST.
     for (int i = 0; i < this.buffer_size; i++) {
         if (east_route_info[i] == EVICT) {
             packet_consume(buffer_east[i], vn);
@@ -281,6 +283,8 @@ void Router::router_phase_one(Packet east_input, Packet west_input, VN vn) {
     packet_add_to_queue(vn);
     packet_produce(vn);
 
+
+    // Writes from the links to the buffer in the node.
     bool east_op = Buffer_Write(east_input, EAST);
     bool west_op = Buffer_Write(west_input, WEST);
 
@@ -291,8 +295,8 @@ void Router::router_phase_one(Packet east_input, Packet west_input, VN vn) {
 
     Router_Compute();
 }
-
-Packet Router::router_phase_two(int output_port_on_off, int output_dirn) {
+// send packets from buffer to links
+Packet Router::router_phase_two(INT16 output_port_on_off, int output_dirn) {
     // switch allocation, buffer read, return the packet
     Packet ret = Switch_Allocator(output_port_on_off, output_port);
     return ret;
