@@ -20,6 +20,7 @@ public:
     bool packet_if_send();
     int get_current_cycle();
     int get_num_node();
+    void inc_cycle();
     int get_routing_algorithm();
     int get_traffic_pattern();
 };

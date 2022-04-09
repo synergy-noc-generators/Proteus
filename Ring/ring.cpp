@@ -49,8 +49,9 @@ void ring(
 //             link_east[NUM_NODES-1],link_west[NUM_NODES-1],link_east[NUM_NODES-2],link_west[0]);
     int total_packets_recieved = 0;
 //     while(total_packets_recieved < num_packets_per_node*NUM_NODES)
-    for( int j = 0; j< 1000; j++)
+    for( int j = 0; j< 100000; j++)
     {
+        noc_vn.inc_cycle();
         node[0].router_phase_one( link_west[1],link_east[NUM_NODES-1], noc_vn);
 
         for (int i = 1 ; i < (NUM_NODES-1); i++)
@@ -94,6 +95,9 @@ void ring(
             
        total_packets_recieved = 0; 
        for(int i = 0 ; i< NUM_NODES; i++)
+        {   
+//             std::cout << "Node : "<<i<< " , num packets added till now = "<< node[i].get_packets_sent() << std::endl;
             total_packets_recieved += node[i].get_packets_sent();
+        }
     }
 }

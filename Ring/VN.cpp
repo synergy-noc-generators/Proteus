@@ -37,6 +37,10 @@ int VN::get_current_cycle() {
     return this->current_cycle;
 }
 
+void VN::inc_cycle() {
+    this->current_cycle++;
+}
+
 int VN::get_num_node() {
     return this->num_node;
 }

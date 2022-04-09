@@ -40,9 +40,13 @@ Router::Router(int router_id, int routing_algorithm, int traffic_pattern, int nu
 
 void Router::deadlock_check(int packet_idle_cycle, VN vn) {
     if (vn.deadlock_check(packet_idle_cycle)) {
-        std::cout << "Possible Deadlock Detected" << std::endl;
+        std::cout << "Possible Deadlock Detected in node "<< this->router_id << ", current idle cycle for this packet = "<< packet_idle_cycle  << std::endl;
         this->deadlock = true;
     }
+//     else
+//     {
+//         this->deadlock = false;
+//     }
 }
 
 void Router::deadlock_check_all(VN vn) {
@@ -110,6 +114,8 @@ void Router::packet_produce(VN vn) {
         this->packets_sent++;
         this->packet_wait_generate--;
     }
+    
+//         std::cout << "packet generated in node "<< this->router_id << " At time :"<<this->buffer_local[location].timestamp << std::endl;
 }
 
 void Router::packet_consume(Packet packet, VN vn) {
@@ -298,6 +304,7 @@ void Router::router_phase_one(Packet east_input, Packet west_input, VN vn) {
         std::cout << "Something goes wrong with Buffer Write" << std::endl;
         return;
     }
+    packet_idle_cycle_update() ;
 
     Router_Compute();
 }
