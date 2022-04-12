@@ -1,3 +1,10 @@
+/*
+Description: This is the topology ring file
+
+Authors:    Abhimanyu Bambhaniya (abambhaniya3@gatech.edu)
+            Yangyu Chen (yangyuchen@gatech.edu)
+*/
+
 #include "Router.h"
 #include "VN.h"
 #include "common.h"
