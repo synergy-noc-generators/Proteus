@@ -13,14 +13,25 @@ Authors:    Abhimanyu Bambhaniya (abambhaniya3@gatech.edu)
 
 typedef ap_int<16> INT16;
 
-#define BUFFER_SIZE  4
-#define NUM_NODES  8
-#define DATA_WIDTH  22       //16+2log2(NUM_NODES)   = 16 +2*3 
-#define ERROR -1
-#define EAST 0
-#define WEST 1
-#define LOCAL 2
-#define EVICT 3
+#define BUFFER_SIZE    4
+#define NUM_NODES      16
+#define NUM_COLS       4
+#define NUM_ROWS       4
+#define DATA_WIDTH     22       //16+2log2(NUM_NODES)   = 16 +2*3 
+#define ERROR          -1
+
+#define NORTH          0
+#define EAST           1
+#define WEST           2
+#define SOUTH          3
+#define LOCAL          4
+#define EVICT          5
+
+#define RANDOM_OBLIVIOUS  0
+#define XY                1
+
+#define BIT_COMPLEMENT 0
+#define TRANSPOSE      1
 
 
 struct Packet {
