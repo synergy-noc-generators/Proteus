@@ -14,7 +14,7 @@ Authors:    Abhimanyu Bambhaniya (abambhaniya3@gatech.edu)
 #include "VN.h"
 
 using namespace std;
-void ring(int       deadlock_cycles, int       num_packets_per_node, int       packet_inject_period, int       num_packets_sent[NUM_NODES], int       num_packets_recieved[NUM_NODES], int       added_latency[NUM_NODES], int       max_latency[NUM_NODES], int     deadlock_detected[NUM_NODES]);
+void torus(int       deadlock_cycles, int       num_packets_per_node, int       packet_inject_period, int       num_packets_sent[NUM_NODES], int       num_packets_recieved[NUM_NODES], int       added_latency[NUM_NODES], int       max_latency[NUM_NODES], int     deadlock_detected[NUM_NODES]);
 int main ()
 {
     
@@ -27,7 +27,7 @@ int       added_latency[NUM_NODES];
 int       max_latency[NUM_NODES];
 int       deadlock_detected[NUM_NODES];   
    
-ring(
+torus(
 deadlock_cycles,
 num_packets_per_node,
 packet_inject_period,

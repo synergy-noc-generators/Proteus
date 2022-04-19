@@ -50,11 +50,13 @@ class Router {
     void packet_consume(Packet packet, VN vn);
     void deadlock_check_all(VN vn);
     int find_empty_buffer(Packet buffers[BUFFER_SIZE]);
-    int find_oldest_packet(Packet buffers[BUFFER_SIZE])  
+    int find_oldest_packet(Packet buffers[BUFFER_SIZE]); 
     void packet_idle_cycle_update();
     INT16 Output_Compute(INT16 dst_id, int input_port);
 
     void Router_Compute();
+    int Route_Compute_random_oblivious(INT16 dst_id, int input_port, bool random_counter) ;
+    int Route_Compute_XY(INT16 dst_id, int input_port, bool random_counter) ;
 
 public:
     Router(int router_id,  int routing_algorithm, int traffic_pattern);
@@ -64,7 +66,7 @@ public:
     INT16 dest_compute();                   //Calculates the packet destination based on network traffic pattern.
     void packet_add_to_queue(VN vn);
     void packet_produce(VN vn);
-    void router_phase_one(Packet east_input, Packet west_input, VN vn);
+    void router_phase_one(Packet north_input, Packet east_input, Packet west_input, Packet south_input, VN vn);
     Packet router_phase_two(INT16 output_port_on_off, int output_dirn);
     INT16 on_off_switch_update(int input_port);
     int get_packets_sent();
