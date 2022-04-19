@@ -333,7 +333,7 @@ Packet Router::Switch_Allocator(INT16 backpressure, int output_port) {
     int least_candidate_timestamp = ERROR;
     for (int i = 0; i < 4; i++) {
         if (candidate_pool[i] != ERROR) {
-            if (candidate_timestamp == ERROR) {
+            if (timestamp_pool[i] == ERROR) {
                 final_candidate = i;
                 least_candidate_timestamp = timestamp_pool[i];
             } else {
