@@ -9,6 +9,7 @@ Authors:    Abhimanyu Bambhaniya (abambhaniya3@gatech.edu)
 #include "VN.h"
 #include "common.h"
 #include <stdio.h>
+#define DEBUG
 
 ////////////////////Torus Config/////////////////////////////
 //
@@ -67,7 +68,8 @@ void torus(
     }
 
     int total_packets_recieved = 0;
-    while(total_packets_recieved < num_packets_per_node*NUM_NODES)
+//     while(total_packets_recieved < num_packets_per_node*NUM_NODES)
+    while(noc_vn.get_current_cycle() < 200)
     {
 
         for (int i = 0 ; i < (NUM_NODES); i++)
@@ -143,21 +145,25 @@ void torus(
                 link_east[i] = node[i].router_phase_two(onoff_switch_west[i+1], EAST);
 
         //          This Function will help in getting the function statistics
-            //printf("LInk West %d: %d %d %d %d \n", i, link_west[i].valid, (int)link_west[i].timestamp, (int)link_west[i].source, (int)link_west[i].dest);
-            //printf("LInk East %d: %d %d %d %d \n", i, link_east[i].valid, (int)link_east[i].timestamp, (int)link_east[i].source, (int)link_east[i].dest);
+            printf("LInk West %d: %d %d %d %d \n", i, link_west[i].valid, (int)link_west[i].timestamp, (int)link_west[i].source, (int)link_west[i].dest);
+            printf("LInk East %d: %d %d %d %d \n", i, link_east[i].valid, (int)link_east[i].timestamp, (int)link_east[i].source, (int)link_east[i].dest);
+            printf("LInk North %d: %d %d %d %d \n", i, link_north[i].valid, (int)link_north[i].timestamp, (int)link_north[i].source, (int)link_north[i].dest);
+            printf("LInk South %d: %d %d %d %d \n", i, link_south[i].valid, (int)link_south[i].timestamp, (int)link_south[i].source, (int)link_south[i].dest);
         }   
 
         total_packets_recieved = 0;
         for(int i = 0 ; i< NUM_NODES; i++)
         {   
             total_packets_recieved += node[i].get_packets_recieved();
+#ifdef DEBUG
+//         std::cout << "Node : "<<i<< " , num packets added till now = "<< node[i].get_packets_sent() << std::endl;
+#endif
         }
         noc_vn.inc_cycle();
     }
 
     for(int i = 0 ; i< NUM_NODES; i++)
     {   
-        //std::cout << "Node : "<<i<< " , num packets added till now = "<< node[i].get_packets_sent() << std::endl;
         num_packets_recieved[i] = node[i].get_packets_recieved();
         num_packets_sent[i] = node[i].get_packets_sent();
         added_latency[i] =  node[i].get_added_latency();

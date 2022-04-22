@@ -30,7 +30,9 @@ Router::Router(int router_id, int routing_algorithm, int traffic_pattern) {
 
 void Router::deadlock_check(int packet_idle_cycle, VN vn) {
     if (vn.deadlock_check(packet_idle_cycle)) {
-        //std::cout << "Possible Deadlock Detected in node "<< this->router_id << ", current idle cycle for this packet = "<< packet_idle_cycle  << std::endl;
+#ifdef DEBUG
+        std::cout << "Possible Deadlock Detected in node "<< this->router_id << ", current idle cycle for this packet = "<< packet_idle_cycle  << std::endl;
+#endif
         this->deadlock = true;
     }
 
@@ -105,7 +107,9 @@ void Router::packet_produce(VN vn) {
         this->buffer_local[location].dest = dest_compute();
         this->packets_sent++;
         this->packet_wait_generate--;
-        //std::cout << "packet generated in node "<< this->router_id << " At time :"<<this->buffer_local[location].timestamp << "Going to: " << this->buffer_local[location].dest << std::endl;
+// #ifdef DEBUG
+        std::cout << "packet generated in node "<< this->router_id << " At time :"<<this->buffer_local[location].timestamp << " Going to: " << this->buffer_local[location].dest << std::endl;
+// #endif
     }
     
 
@@ -150,7 +154,8 @@ bool Router::Buffer_Write(Packet packet, int buffer_location) {
 
     if (buffer_location == LOCAL) {
         return false;
-    } else if (buffer_location == EAST) {
+    } 
+    else if (buffer_location == EAST) {
         int location = find_empty_buffer(this->buffer_east);
         if (location == ERROR) {
             return false;
@@ -158,16 +163,37 @@ bool Router::Buffer_Write(Packet packet, int buffer_location) {
 
         buffer_east[location] = packet;
         return true;
-    } else if (buffer_location == WEST) {
+    } 
+    else if (buffer_location == WEST) {
         int location = find_empty_buffer(this->buffer_west);
         if (location == ERROR) {
             return false;
         }
-
+#ifdef DEBUG 
+//         std::cout << " Writing to buffer west at location " << location << " , the packet V: "<< packet.valid << " timestamp " << packet.timestamp_pool << " source " << packet.source << " dest " << packet.dest << endl ;
+#endif
         buffer_west[location] = packet;
         return true;
     }
+    else if (buffer_location == NORTH) {
+        int location = find_empty_buffer(this->buffer_north);
+        if (location == ERROR) {
+            return false;
+        }
 
+        buffer_north[location] = packet;
+        return true;
+    }
+
+    else if (buffer_location == SOUTH) {
+        int location = find_empty_buffer(this->buffer_south);
+        if (location == ERROR) {
+            return false;
+        }
+
+        buffer_south[location] = packet;
+        return true;
+    }
     return false;
 }
 
@@ -381,6 +407,9 @@ void Router::router_phase_one(Packet north_input, Packet east_input, Packet west
     // deadlock check
     deadlock_check_all(vn);
 
+#ifdef DEBUG
+        std::cout << "Something goes wrong with Buffer Write" << std::endl;
+#endif
     for (int i = 0; i < BUFFER_SIZE; i++) {
         if (buffer_north[i].valid && north_route_info[i] == EVICT) {
             packet_consume(buffer_north[i], vn);
@@ -426,7 +455,9 @@ void Router::router_phase_one(Packet north_input, Packet east_input, Packet west
     bool south_op = Buffer_Write(south_input, SOUTH);
 
     if (!north_op || !east_op || !west_op || !south_op) {
-        //std::cout << "Something goes wrong with Buffer Write" << std::endl;
+#ifdef DEBUG
+        std::cout << "Something goes wrong with Buffer Write" << std::endl;
+#endif
         return;
     }
     packet_idle_cycle_update();
@@ -437,7 +468,10 @@ void Router::router_phase_one(Packet north_input, Packet east_input, Packet west
 Packet Router::router_phase_two(INT16 backpressure, int output_dirn) {
     // switch allocation, buffer read, return the packet
     Packet ret = Switch_Allocator(backpressure, output_dirn);
-    //printf("Packet going %d: %d %d %d %d \n", output_dirn, ret.valid, (int)ret.timestamp, (int)ret.source, (int)ret.dest);
+#ifdef DEBUG
+//         std::cout << "Something goes wrong with Buffer Write" << std::endl;
+    printf("Packet going %d: %d %d %d %d \n", output_dirn, ret.valid, (int)ret.timestamp, (int)ret.source, (int)ret.dest);
+#endif
     return ret;
 }
 
