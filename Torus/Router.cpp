@@ -89,6 +89,7 @@ INT16 Router::dest_compute() {
         int my_y = this->router_id / NUM_COLS;
         return my_x * NUM_COLS + my_y; // reverse the x and y position
     }
+    return ERROR;
 }
 
 void Router::packet_add_to_queue(VN vn) {
@@ -218,8 +219,10 @@ int Router::Route_Compute_random_oblivious(INT16 dst_id, int input_port, bool ra
     int dst_x = dst_id % NUM_COLS;
     int dst_y = dst_id / NUM_COLS;
 
-    int x_hops = abs(dst_x - my_x);
-    int y_hops = abs(dst_y - my_y);
+//     int x_hops = std::abs(dst_x - my_x);
+//     int y_hops = std::abs(dst_y - my_y);
+int x_hops = (dst_x - my_x) >= 0 ? dst_x - my_x : my_x - dst_x;
+int y_hops = (dst_y - my_y) >= 0 ? dst_y - my_y : my_y - dst_y;
 
     bool x_dirn = (dst_x >= my_x);
     bool y_dirn = (dst_y >= my_y);
@@ -256,7 +259,7 @@ int Router::Route_Compute_random_oblivious(INT16 dst_id, int input_port, bool ra
     return direction;
 }
 
-int Router::Route_Compute_XY(INT16 dst_id, int input_port, bool random_counter) {
+int Router::Route_Compute_XY(INT16 dst_id, int input_port) {
     if (dst_id == this->router_id) {
         return EVICT;
     }
@@ -267,8 +270,10 @@ int Router::Route_Compute_XY(INT16 dst_id, int input_port, bool random_counter) 
     int dst_x = dst_id % NUM_COLS;
     int dst_y = dst_id / NUM_COLS;
 
-    int x_hops = abs(dst_x - my_x);
-    int y_hops = abs(dst_y - my_y);
+//     int x_hops = abs(dst_x - my_x);
+//     int y_hops = abs(dst_y - my_y);
+int x_hops = (dst_x - my_x) >= 0 ? dst_x - my_x : my_x - dst_x;
+int y_hops = (dst_y - my_y) >= 0 ? dst_y - my_y : my_y - dst_y;
 
     bool x_dirn = (dst_x >= my_x);
     bool y_dirn = (dst_y >= my_y);
@@ -304,7 +309,7 @@ INT16 Router::Output_Compute(INT16 dst_id, int input_port) {
     if (this->routing_algorithm == RANDOM_OBLIVIOUS) { // random_oblivious
         return Route_Compute_random_oblivious(dst_id, input_port, random_counter);
     } else if (this->routing_algorithm == XY) {
-        return Route_Compute_XY(dst_id, input_port, random_counter);
+        return Route_Compute_XY(dst_id, input_port);
     }
 
     return ERROR;

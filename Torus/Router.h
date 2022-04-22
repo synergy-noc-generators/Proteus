@@ -56,7 +56,7 @@ class Router {
 
     void Router_Compute();
     int Route_Compute_random_oblivious(INT16 dst_id, int input_port, bool random_counter) ;
-    int Route_Compute_XY(INT16 dst_id, int input_port, bool random_counter) ;
+    int Route_Compute_XY(INT16 dst_id, int input_port) ;
 
 public:
     Router(int router_id,  int routing_algorithm, int traffic_pattern);
