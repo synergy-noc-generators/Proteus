@@ -53,7 +53,7 @@ deadlock_detected
 
     std::cout << "Total packets recieved: " << total_packets_recieved << std::endl;
     std::cout << "Total packets sent: " << total_packets_sent << std::endl;
-    std::cout << "Average latency: " << total_latency/(num_packets_per_node*NUM_NODES) << std::endl;
+    std::cout << "Average latency: " << (float)total_latency/(num_packets_per_node*NUM_NODES) << std::endl;
     std::cout << "Max latency: " << overall_max_latency << std::endl;
     std::cout << "Number of nodes detect deadlock: " << num_node_deadlock_detected << std::endl;
     
