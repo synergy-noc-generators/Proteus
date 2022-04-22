@@ -9,7 +9,7 @@ Authors:    Abhimanyu Bambhaniya (abambhaniya3@gatech.edu)
 #include "VN.h"
 #include "common.h"
 #include <stdio.h>
-#define DEBUG
+// #define DEBUG
 
 ////////////////////Torus Config/////////////////////////////
 //
@@ -47,7 +47,7 @@ void torus(
     static Router node[NUM_NODES]; 
     static VN noc_vn(NUM_NODES);
    
-    int routing_algorithm = 0;
+    int routing_algorithm = 1;
     int traffic_pattern = 0;
 
     noc_vn = VN(deadlock_cycles, num_packets_per_node, packet_inject_period, routing_algorithm, traffic_pattern,NUM_NODES);
@@ -68,8 +68,8 @@ void torus(
     }
 
     int total_packets_recieved = 0;
-//     while(total_packets_recieved < num_packets_per_node*NUM_NODES)
-    while(noc_vn.get_current_cycle() < 200)
+    while(total_packets_recieved < num_packets_per_node*NUM_NODES)
+//     while(noc_vn.get_current_cycle() < 1000)
     {
 
         for (int i = 0 ; i < (NUM_NODES); i++)
@@ -119,6 +119,9 @@ void torus(
             onoff_switch_west[i] = node[i].on_off_switch_update(WEST);
             onoff_switch_north[i] = node[i].on_off_switch_update(NORTH);
             onoff_switch_south[i] = node[i].on_off_switch_update(SOUTH);
+#ifdef DEBUG
+            std::cout << "Node : "<<i<< " , onoff switch E W N S = "<< onoff_switch_east[i] << onoff_switch_west[i] << onoff_switch_north[i] << onoff_switch_south[i] << std::endl;
+#endif
         }
 
        for(int i = 0 ; i< NUM_NODES; i++)
@@ -145,10 +148,12 @@ void torus(
                 link_east[i] = node[i].router_phase_two(onoff_switch_west[i+1], EAST);
 
         //          This Function will help in getting the function statistics
+#ifdef DEBUG
             printf("LInk West %d: %d %d %d %d \n", i, link_west[i].valid, (int)link_west[i].timestamp, (int)link_west[i].source, (int)link_west[i].dest);
             printf("LInk East %d: %d %d %d %d \n", i, link_east[i].valid, (int)link_east[i].timestamp, (int)link_east[i].source, (int)link_east[i].dest);
             printf("LInk North %d: %d %d %d %d \n", i, link_north[i].valid, (int)link_north[i].timestamp, (int)link_north[i].source, (int)link_north[i].dest);
             printf("LInk South %d: %d %d %d %d \n", i, link_south[i].valid, (int)link_south[i].timestamp, (int)link_south[i].source, (int)link_south[i].dest);
+#endif
         }   
 
         total_packets_recieved = 0;

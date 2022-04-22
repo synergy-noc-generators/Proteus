@@ -14,6 +14,7 @@ Authors:    Abhimanyu Bambhaniya (abambhaniya3@gatech.edu)
 typedef ap_int<16> INT16;
 
 #define BUFFER_SIZE    4
+
 #define NODES_PER_ROW  4
 #define NUM_NODES      NODES_PER_ROW*NODES_PER_ROW
 #define NUM_COLS       NODES_PER_ROW
@@ -21,11 +22,11 @@ typedef ap_int<16> INT16;
 #define DATA_WIDTH     22       //16+2log2(NUM_NODES)   = 16 +2*3 
 #define ERROR          -1
 
-#define NORTH          0
+#define NORTH          4
 #define EAST           1
 #define WEST           2
 #define SOUTH          3
-#define LOCAL          4
+#define LOCAL          0
 #define EVICT          5
 
 #define RANDOM_OBLIVIOUS  0

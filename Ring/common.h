@@ -17,10 +17,10 @@ typedef ap_int<16> INT16;
 #define NUM_NODES  8
 #define DATA_WIDTH  22       //16+2log2(NUM_NODES)   = 16 +2*3 
 #define ERROR -1
-#define EAST 0
-#define WEST 1
-#define LOCAL 2
-#define EVICT 3
+#define EAST 1
+#define WEST 2
+#define LOCAL 3
+#define EVICT 4
 
 
 struct Packet {

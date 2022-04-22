@@ -19,7 +19,7 @@ int main ()
 {
     
 int       deadlock_cycles=1000;
-int       num_packets_per_node=10;
+int       num_packets_per_node=200;
 int       packet_inject_period=10;
 int       num_packets_sent[NUM_NODES];
 int       num_packets_recieved[NUM_NODES];

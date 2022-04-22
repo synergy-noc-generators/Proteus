@@ -15,24 +15,24 @@ class Router {
     int buffer_threshold;
 
     Packet buffer_north[BUFFER_SIZE];
-    INT16 north_route_info[BUFFER_SIZE] = {}; //{EVICT, EVICT, EVICT, EVICT};
-    INT16 packet_idle_cycle_north[BUFFER_SIZE]= {}; //{0, 0, 0, 0};
-
+    INT16 north_route_info[BUFFER_SIZE] = {EVICT, EVICT, EVICT, EVICT};
+    INT16 packet_idle_cycle_north[BUFFER_SIZE]= {0, 0, 0, 0};
+// TODO do a for loop in the constructor to make this parameterizable
     Packet buffer_east[BUFFER_SIZE];
-    INT16 east_route_info[BUFFER_SIZE] = {};
-    INT16 packet_idle_cycle_east[BUFFER_SIZE]= {};
+    INT16 east_route_info[BUFFER_SIZE] = {EVICT, EVICT, EVICT, EVICT};
+    INT16 packet_idle_cycle_east[BUFFER_SIZE]=  {0, 0, 0, 0};
 
     Packet buffer_west[BUFFER_SIZE];
-    INT16 west_route_info[BUFFER_SIZE] = {};
-    INT16 packet_idle_cycle_west[BUFFER_SIZE]= {};
+    INT16 west_route_info[BUFFER_SIZE] = {EVICT, EVICT, EVICT, EVICT};
+    INT16 packet_idle_cycle_west[BUFFER_SIZE]=  {0, 0, 0, 0};
 
     Packet buffer_south[BUFFER_SIZE];
-    INT16 south_route_info[BUFFER_SIZE] = {};
-    INT16 packet_idle_cycle_south[BUFFER_SIZE]= {};
+    INT16 south_route_info[BUFFER_SIZE] = {EVICT, EVICT, EVICT, EVICT};
+    INT16 packet_idle_cycle_south[BUFFER_SIZE]=  {0, 0, 0, 0};
     
     Packet buffer_local[BUFFER_SIZE];
-    INT16 local_route_info[BUFFER_SIZE] = {};
-    INT16 packet_idle_cycle_local[BUFFER_SIZE]= {};
+    INT16 local_route_info[BUFFER_SIZE] = {EVICT, EVICT, EVICT, EVICT};
+    INT16 packet_idle_cycle_local[BUFFER_SIZE]=  {0, 0, 0, 0};
 
     int packet_wait_generate; // packets waiting for generating
     int packets_recieved;

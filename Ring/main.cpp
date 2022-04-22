@@ -18,7 +18,7 @@ void ring(int       deadlock_cycles, int       num_packets_per_node, int       p
 int main ()
 {
     
-int       deadlock_cycles=1000;
+int       deadlock_cycles=10000;
 int       num_packets_per_node=200;
 int       packet_inject_period=10;
 int       num_packets_sent[NUM_NODES];

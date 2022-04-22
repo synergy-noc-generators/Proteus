@@ -9,7 +9,7 @@ Authors:    Abhimanyu Bambhaniya (abambhaniya3@gatech.edu)
 #include "VN.h"
 #include "common.h"
 #include <stdio.h>
-
+// #define DEBUG
 Router::Router() {
 
 }
@@ -107,9 +107,9 @@ void Router::packet_produce(VN vn) {
         this->buffer_local[location].dest = dest_compute();
         this->packets_sent++;
         this->packet_wait_generate--;
-// #ifdef DEBUG
+#ifdef DEBUG
         std::cout << "packet generated in node "<< this->router_id << " At time :"<<this->buffer_local[location].timestamp << " Going to: " << this->buffer_local[location].dest << std::endl;
-// #endif
+#endif
     }
     
 
@@ -161,6 +161,9 @@ bool Router::Buffer_Write(Packet packet, int buffer_location) {
             return false;
         }
 
+#ifdef DEBUG 
+         std::cout << " Writing to buffer east at location " << location << " , the packet V: "<< packet.valid << " timestamp " << packet.timestamp << " source " << packet.source << " dest " << packet.dest << std::endl ;
+#endif
         buffer_east[location] = packet;
         return true;
     } 
@@ -170,7 +173,7 @@ bool Router::Buffer_Write(Packet packet, int buffer_location) {
             return false;
         }
 #ifdef DEBUG 
-//         std::cout << " Writing to buffer west at location " << location << " , the packet V: "<< packet.valid << " timestamp " << packet.timestamp_pool << " source " << packet.source << " dest " << packet.dest << endl ;
+         std::cout << " Writing to buffer west at location " << location << " , the packet V: "<< packet.valid << " timestamp " << packet.timestamp << " source " << packet.source << " dest " << packet.dest << std::endl ;
 #endif
         buffer_west[location] = packet;
         return true;
@@ -181,6 +184,9 @@ bool Router::Buffer_Write(Packet packet, int buffer_location) {
             return false;
         }
 
+#ifdef DEBUG 
+         std::cout << " Writing to buffer north at location " << location << " , the packet V: "<< packet.valid << " timestamp " << packet.timestamp << " source " << packet.source << " dest " << packet.dest << std::endl ;
+#endif
         buffer_north[location] = packet;
         return true;
     }
@@ -191,6 +197,9 @@ bool Router::Buffer_Write(Packet packet, int buffer_location) {
             return false;
         }
 
+#ifdef DEBUG 
+         std::cout << " Writing to buffer south at location " << location << " , the packet V: "<< packet.valid << " timestamp " << packet.timestamp << " source " << packet.source << " dest " << packet.dest << std::endl ;
+#endif
         buffer_south[location] = packet;
         return true;
     }
@@ -273,9 +282,9 @@ int Router::Route_Compute_XY(INT16 dst_id, int input_port, bool random_counter) 
         }
     } else if (y_hops > 0) {
         if (y_dirn) {
-            direction = NORTH;
-        } else {
             direction = SOUTH;
+        } else {
+            direction = NORTH;
         }
     } else {
         direction = ERROR;
@@ -309,6 +318,7 @@ void Router::Router_Compute() {
 
     	if (buffer_east[i].valid) {
     		east_route_info[i] = Output_Compute(buffer_east[i].dest, EAST);
+//     		printf("east route info %d: %d \n", i, (int)east_route_info[i]);
     	}
 
     	if (buffer_west[i].valid) {
@@ -335,8 +345,8 @@ Packet Router::Switch_Allocator(INT16 backpressure, int output_port) {
         return ret;
     }
 
-    int candidate_pool[4] = {}; // each location represent one direction: N, E, W, S
-    int timestamp_pool[4] = {}; 
+    int candidate_pool[5] = {0,0,0,0,0}; // each location represent one direction: N, E, W, S
+    int timestamp_pool[5] = {0,0,0,0,0}; 
 
     candidate_pool[NORTH] = find_oldest_packet(this->buffer_north);
     timestamp_pool[NORTH] = buffer_north[candidate_pool[NORTH]].timestamp;
@@ -351,15 +361,15 @@ Packet Router::Switch_Allocator(INT16 backpressure, int output_port) {
     timestamp_pool[SOUTH] = buffer_south[candidate_pool[SOUTH]].timestamp;
 
     candidate_pool[NORTH] = north_route_info[candidate_pool[NORTH]] == output_port ? candidate_pool[NORTH] : ERROR;
-    candidate_pool[EAST] = north_route_info[candidate_pool[EAST]] == output_port ? candidate_pool[EAST] : ERROR;
+    candidate_pool[EAST] = east_route_info[candidate_pool[EAST]] == output_port ? candidate_pool[EAST] : ERROR;
     candidate_pool[WEST] = west_route_info[candidate_pool[WEST]] == output_port ? candidate_pool[WEST] : ERROR;
     candidate_pool[SOUTH] = south_route_info[candidate_pool[SOUTH]] == output_port ? candidate_pool[SOUTH] : ERROR;
 
     int final_candidate = ERROR;
     int least_candidate_timestamp = ERROR;
-    for (int i = 0; i < 4; i++) {
+    for (int i = 1; i < 5; i++) {
         if (candidate_pool[i] != ERROR) {
-            if (timestamp_pool[i] == ERROR) {
+            if (final_candidate == ERROR) {
                 final_candidate = i;
                 least_candidate_timestamp = timestamp_pool[i];
             } else {
@@ -407,9 +417,6 @@ void Router::router_phase_one(Packet north_input, Packet east_input, Packet west
     // deadlock check
     deadlock_check_all(vn);
 
-#ifdef DEBUG
-        std::cout << "Something goes wrong with Buffer Write" << std::endl;
-#endif
     for (int i = 0; i < BUFFER_SIZE; i++) {
         if (buffer_north[i].valid && north_route_info[i] == EVICT) {
             packet_consume(buffer_north[i], vn);
@@ -464,12 +471,12 @@ void Router::router_phase_one(Packet north_input, Packet east_input, Packet west
 
     Router_Compute();
 }
+
 // send packets from buffer to links
 Packet Router::router_phase_two(INT16 backpressure, int output_dirn) {
     // switch allocation, buffer read, return the packet
     Packet ret = Switch_Allocator(backpressure, output_dirn);
 #ifdef DEBUG
-//         std::cout << "Something goes wrong with Buffer Write" << std::endl;
     printf("Packet going %d: %d %d %d %d \n", output_dirn, ret.valid, (int)ret.timestamp, (int)ret.source, (int)ret.dest);
 #endif
     return ret;
@@ -481,6 +488,12 @@ INT16 Router::on_off_switch_update(int input_port) {
         return this->backpressure;
     } else if (input_port == WEST) {
         this->backpressure = get_num_valid_buffer(buffer_west) <= this->buffer_threshold;
+        return this->backpressure;
+    } else if (input_port == NORTH) {
+        this->backpressure = get_num_valid_buffer(buffer_north) <= this->buffer_threshold;
+        return this->backpressure;
+    } else if (input_port == SOUTH) {
+        this->backpressure = get_num_valid_buffer(buffer_south) <= this->buffer_threshold;
         return this->backpressure;
     }
 
