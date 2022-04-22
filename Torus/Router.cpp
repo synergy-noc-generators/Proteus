@@ -82,12 +82,48 @@ int Router::find_oldest_packet(Packet buffers[BUFFER_SIZE]) {
 }
 
 INT16 Router::dest_compute() { 
+    int num_destinations = NUM_NODES;
+    int radix = NUM_COLS;
+    int dest_x = -1;
+    int dest_y = -1;
+    int source = this->router_id;
+    int src_x = this->router_id % NUM_COLS;
+    int src_y = this->router_id / NUM_COLS;
+
     if (this->traffic_pattern == BIT_COMPLEMENT) {
         return NUM_NODES - this->router_id - 1;
-    } else if (this->traffic_pattern == TRANSPOSE) {
-        int my_x = this->router_id % NUM_COLS;
-        int my_y = this->router_id / NUM_COLS;
-        return my_x * NUM_COLS + my_y; // reverse the x and y position
+    } 
+    else if (this->traffic_pattern == TRANSPOSE) {
+        return src_x * NUM_COLS + src_y; // reverse the x and y position
+    } 
+    else if (this->traffic_pattern == BIT_REVERSE) {
+        unsigned int straight = source;
+        unsigned int reverse = source & 1; // LSB
+        int num_bits = (int) log2(num_destinations);
+        for (int i = 1; i < num_bits; i++)
+        {
+            reverse <<= 1;
+            straight >>= 1;
+            reverse |= (straight & 1); // LSB
+        }
+        return reverse;
+    } 
+    else if (this->traffic_pattern == BIT_ROTATION) {
+        if (source%2 == 0)
+            return source/2;
+        else // (source%2 == 1)
+            return ((source/2) + (num_destinations/2));
+    } 
+    else if (this->traffic_pattern == NEIGHBOR) {
+            dest_x = (src_x + 1) % NUM_COLS;
+            dest_y = src_y;
+            return dest_y*NUM_COLS + dest_x;
+    } 
+    else if (this->traffic_pattern == SHUFFLE) {
+        if (source < num_destinations/2)
+            return source*2;
+        else
+            return (source*2 - num_destinations + 1);
     }
     return ERROR;
 }
