@@ -18,8 +18,8 @@ void ring(int       deadlock_cycles, int       num_packets_per_node, int       p
 int main ()
 {
     
-int       deadlock_cycles=100;
-int       num_packets_per_node=200;
+int       deadlock_cycles=100000;
+int       num_packets_per_node=2000;
 int       packet_inject_period=1;
 int       num_packets_sent[NUM_NODES];
 int       num_packets_recieved[NUM_NODES];

@@ -35,7 +35,7 @@ void ring(
     static VN noc_vn(NUM_NODES);
    
     int routing_algorithm = 0;
-    int traffic_pattern = 0;
+    int traffic_pattern = SHUFFLE;
 
     noc_vn = VN(deadlock_cycles, num_packets_per_node, packet_inject_period, routing_algorithm, traffic_pattern,NUM_NODES);
 

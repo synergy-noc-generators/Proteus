@@ -78,10 +78,18 @@ int Router::find_oldest_packet(Packet buffers[BUFFER_SIZE]) {
     return location;
 }
 
-INT16 Router::dest_compute() {      //For now assuming only 1 type of trafic pattern.
-//     if (this->traffic_pattern == 0) { // bit_compliment
-        return NUM_NODES - this->router_id - 1; // this->is ring based
-//     }
+INT16 Router::dest_compute() {
+    int num_destinations = NUM_NODES;
+    int source = this->router_id;
+    if (this->traffic_pattern == BIT_COMPLEMENT) { 
+        return NUM_NODES - this->router_id - 1;
+     } else if (this->traffic_pattern == SHUFFLE) {
+        if (source < num_destinations/2)
+            return source*2;
+        else
+            return (source*2 - num_destinations + 1);
+    }
+    return ERROR;
 }
 
 void Router::packet_add_to_queue(VN vn) {

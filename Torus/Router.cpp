@@ -257,8 +257,8 @@ int Router::Route_Compute_random_oblivious(INT16 dst_id, int input_port, bool ra
 
 //     int x_hops = std::abs(dst_x - my_x);
 //     int y_hops = std::abs(dst_y - my_y);
-int x_hops = (dst_x - my_x) >= 0 ? dst_x - my_x : my_x - dst_x;
-int y_hops = (dst_y - my_y) >= 0 ? dst_y - my_y : my_y - dst_y;
+    int x_hops = (dst_x - my_x) >= 0 ? dst_x - my_x : my_x - dst_x;
+    int y_hops = (dst_y - my_y) >= 0 ? dst_y - my_y : my_y - dst_y;
 
     bool x_dirn = (dst_x >= my_x);
     bool y_dirn = (dst_y >= my_y);
@@ -266,9 +266,9 @@ int y_hops = (dst_y - my_y) >= 0 ? dst_y - my_y : my_y - dst_y;
     int direction = ERROR;
     if (x_hops == 0) {
         if (y_dirn > 0) {
-            direction = NORTH;
-        } else {
             direction = SOUTH;
+        } else {
+            direction = NORTH;
         }
     } else if (y_hops == 0) {
         if (x_dirn > 0) {
