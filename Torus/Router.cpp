@@ -306,10 +306,10 @@ int Router::Route_Compute_XY(INT16 dst_id, int input_port) {
     int dst_x = dst_id % NUM_COLS;
     int dst_y = dst_id / NUM_COLS;
 
-//     int x_hops = abs(dst_x - my_x);
-//     int y_hops = abs(dst_y - my_y);
-int x_hops = (dst_x - my_x) >= 0 ? dst_x - my_x : my_x - dst_x;
-int y_hops = (dst_y - my_y) >= 0 ? dst_y - my_y : my_y - dst_y;
+    //     int x_hops = abs(dst_x - my_x);
+    //     int y_hops = abs(dst_y - my_y);
+    int x_hops = (dst_x - my_x) >= 0 ? dst_x - my_x : my_x - dst_x;
+    int y_hops = (dst_y - my_y) >= 0 ? dst_y - my_y : my_y - dst_y;
 
     bool x_dirn = (dst_x >= my_x);
     bool y_dirn = (dst_y >= my_y);
