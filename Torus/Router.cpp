@@ -99,7 +99,7 @@ INT16 Router::dest_compute() {
     else if (this->traffic_pattern == BIT_REVERSE) {
         unsigned int straight = source;
         unsigned int reverse = source & 1; // LSB
-        int num_bits = (int) log2(num_destinations);
+        int num_bits = NUM_NODES_LOG2;
         for (int i = 1; i < num_bits; i++)
         {
             reverse <<= 1;
