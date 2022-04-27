@@ -22,6 +22,8 @@ typedef ap_int<16> INT16;
 #define LOCAL 3
 #define EVICT 4
 
+#define RANDOM_OBLIVIOUS 0 
+
 #define BIT_COMPLEMENT 0
 #define SHUFFLE 1
 

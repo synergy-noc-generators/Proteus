@@ -14,28 +14,29 @@ void ring(
         int       deadlock_cycles,
         int       num_packets_per_node,
         int       packet_inject_period, // EX. =10, every 10 cycles, a packet will be generated at each node
-        int       num_packets_sent[NUM_NODES],
-        int       num_packets_recieved[NUM_NODES],
-        int       added_latency[NUM_NODES], 
-        int       max_latency[NUM_NODES], 
-        int       deadlock_detected[NUM_NODES]
+        int       routing_algorithm, 
+        int       traffic_pattern,
+        int       &total_packets_sent,
+        int       &total_packets_recieved,
+        long      &total_latency, 
+        int       &overall_max_latency, 
+        int       &num_node_deadlock_detected
         )
 {
 #pragma HLS interface s_axilite register port=return
 #pragma HLS interface s_axilite register port=deadlock_cycles
-#pragma HLS interface s_axilite register port=packet_inject_period
-#pragma HLS interface s_axilite register port=num_packets_sent
 #pragma HLS interface s_axilite register port=num_packets_per_node
-#pragma HLS interface s_axilite register port=num_packets_recieved
-#pragma HLS interface s_axilite register port=added_latency
-#pragma HLS interface s_axilite register port=max_latency
-#pragma HLS interface s_axilite register port=deadlock_detected
+#pragma HLS interface s_axilite register port=packet_inject_period
+#pragma HLS interface s_axilite register port=routing_algorithm
+#pragma HLS interface s_axilite register port=traffic_pattern
+#pragma HLS interface s_axilite register port=total_packets_sent
+#pragma HLS interface s_axilite register port=total_packets_recieved
+#pragma HLS interface s_axilite register port=total_latency
+#pragma HLS interface s_axilite register port=overall_max_latency
+#pragma HLS interface s_axilite register port=num_node_deadlock_detected
 
     static Router node[NUM_NODES]; 
     static VN noc_vn(NUM_NODES);
-   
-    int routing_algorithm = 0;
-    int traffic_pattern = SHUFFLE;
 
     noc_vn = VN(deadlock_cycles, num_packets_per_node, packet_inject_period, routing_algorithm, traffic_pattern,NUM_NODES);
 
@@ -50,8 +51,8 @@ void ring(
         node[i] = Router(i,routing_algorithm,traffic_pattern);
     }
 
-    int total_packets_recieved = 0;
-    while(total_packets_recieved < num_packets_per_node*NUM_NODES)
+    int total_packets_recieved_inner = 0;
+    while(total_packets_recieved_inner < num_packets_per_node*NUM_NODES)
     {
         node[0].router_phase_one( link_west[1],link_east[NUM_NODES-1], noc_vn);
 
@@ -96,24 +97,32 @@ void ring(
             //printf("LInk East %d: %d %d %d %d \n", i, link_east[i].valid, (int)link_east[i].timestamp, (int)link_east[i].source, (int)link_east[i].dest);
         }   
 
-        total_packets_recieved = 0;
+        total_packets_recieved_inner = 0;
         for(int i = 0 ; i< NUM_NODES; i++)
         {   
-            total_packets_recieved += node[i].get_packets_recieved();
+            total_packets_recieved_inner += node[i].get_packets_recieved();
         }
         noc_vn.inc_cycle();
     }
 
+
+    total_packets_recieved = 0;
+    total_packets_sent = 0;
+    total_latency = 0;
+    overall_max_latency = 0;
+    num_node_deadlock_detected = 0;
+
     for(int i = 0 ; i< NUM_NODES; i++)
     {   
         //std::cout << "Node : "<<i<< " , num packets added till now = "<< node[i].get_packets_sent() << std::endl;
-        num_packets_recieved[i] = node[i].get_packets_recieved();
-        num_packets_sent[i] = node[i].get_packets_sent();
-        added_latency[i] =  node[i].get_added_latency();
-        max_latency[i] = node[i].get_max_latency();
-        deadlock_detected[i] = node[i].get_deadlock_info();
+        total_packets_recieved += node[i].get_packets_recieved();
+        total_packets_sent += node[i].get_packets_sent();
+        total_latency +=  node[i].get_added_latency();
+        overall_max_latency = node[i].get_max_latency() > overall_max_latency ? node[i].get_max_latency() : overall_max_latency;
+        num_node_deadlock_detected = node[i].get_deadlock_info() != 0 ? num_node_deadlock_detected + 1 : num_node_deadlock_detected;
     }
-    //printf("packet recieved: %d", (int)total_packets_recieved);
+    //printf("packet recieved: %d", (int)total_packets_recieved_inner);
     //printf("packet sent: %d", (int)total_packets_sent);
+
 
 }

@@ -14,42 +14,46 @@ Authors:    Abhimanyu Bambhaniya (abambhaniya3@gatech.edu)
 #include "VN.h"
 
 using namespace std;
-void torus(int       deadlock_cycles, int       num_packets_per_node, int       packet_inject_period, int       num_packets_sent[NUM_NODES], int       num_packets_recieved[NUM_NODES], int       added_latency[NUM_NODES], int       max_latency[NUM_NODES], int     deadlock_detected[NUM_NODES]);
+
+void torus( 
+        int       deadlock_cycles,
+        int       num_packets_per_node,
+        int       packet_inject_period, // EX. =10, every 10 cycles, a packet will be generated at each node
+        int       routing_algorithm, 
+        int       traffic_pattern,
+        int       &total_packets_sent,
+        int       &total_packets_recieved,
+        long      &total_latency, 
+        int       &overall_max_latency, 
+        int       &num_node_deadlock_detected
+        );
+
 int main ()
 {
     
-int       deadlock_cycles=10000;
-int       num_packets_per_node=2000;
-int       packet_inject_period=4;
-int       num_packets_sent[NUM_NODES];
-int       num_packets_recieved[NUM_NODES];
-int       added_latency[NUM_NODES];
-int       max_latency[NUM_NODES];
-int       deadlock_detected[NUM_NODES];   
-   
-torus(
-deadlock_cycles,
-num_packets_per_node,
-packet_inject_period,
-num_packets_sent,
-num_packets_recieved,
-added_latency,
-max_latency,
-deadlock_detected
-);
-    
-    int total_packets_recieved = 0;
+    int deadlock_cycles = 100000;
+    int num_packets_per_node = 2000;
+    int packet_inject_period = 1;
+    int routing_algorithm = RANDOM_OBLIVIOUS;
+    int traffic_pattern = SHUFFLE;
     int total_packets_sent = 0;
-    int total_latency = 0;
+    int total_packets_recieved = 0;
+    long total_latency = 0;
     int overall_max_latency = 0;
     int num_node_deadlock_detected = 0;
-    for (int i = 0; i < NUM_NODES; i++) {
-        total_packets_recieved += num_packets_recieved[i];
-        total_packets_sent += num_packets_sent[i];
-        total_latency += added_latency[i];
-        overall_max_latency = max_latency[i] > overall_max_latency ? max_latency[i] : overall_max_latency;
-        num_node_deadlock_detected = deadlock_detected[i] != 0 ? num_node_deadlock_detected + 1 : num_node_deadlock_detected;
-    }
+    
+    torus (
+        deadlock_cycles,
+        num_packets_per_node,
+        packet_inject_period,
+        routing_algorithm,
+        traffic_pattern,
+        total_packets_sent,
+        total_packets_recieved,
+        total_latency,
+        overall_max_latency,
+        num_node_deadlock_detected
+    );
 
     std::cout << "Total packets recieved: " << total_packets_recieved << std::endl;
     std::cout << "Total packets sent: " << total_packets_sent << std::endl;

@@ -170,7 +170,7 @@ bool Router::Buffer_Write(Packet packet, int buffer_location) {
 INT16 Router::Output_Compute(INT16 dst_id, int input_port) {
     static bool random_counter = false; // fake random number decider: false -> east, true -> west
     random_counter = !random_counter;
-    if (this->routing_algorithm == 0) { // random_oblivious
+    if (this->routing_algorithm == RANDOM_OBLIVIOUS) { // random_oblivious
         if (input_port == LOCAL) {
             int go_east_hop = 0;
             int go_west_hop = 0;
