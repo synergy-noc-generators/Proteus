@@ -56,12 +56,16 @@ class Router {
 
     void Router_Compute();
     int Route_Compute_random_oblivious(INT16 dst_id, int input_port, bool random_counter) ;
+    int Route_Compute_north_last(INT16 dst_id, int input_port, bool random_counter) ;
+    int Route_Compute_west_first(INT16 dst_id, int input_port, bool random_counter) ;
     int Route_Compute_XY(INT16 dst_id, int input_port) ;
 
 public:
     Router(int router_id,  int routing_algorithm, int traffic_pattern);
     Router();
     void deadlock_check(int packet_idle_cycle , VN vn);
+    ap_uint<16> random_counter =49;
+    ap_uint<16> random_counter_reset =49;
     int get_num_valid_buffer(Packet buffers[BUFFER_SIZE]);
     INT16 dest_compute();                   //Calculates the packet destination based on network traffic pattern.
     void packet_add_to_queue(VN vn);

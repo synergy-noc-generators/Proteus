@@ -428,6 +428,7 @@ Packet Router::Switch_Allocator(INT16 backpressure, int output_port) {
 
     if (final_candidate == ERROR) {
         int location = find_oldest_packet(this->buffer_local);
+//         std::cout << "We are here \n";
         if (local_route_info[location] == output_port) {
             packet_idle_cycle_local[location] = 0;
             ret = buffer_local[location];

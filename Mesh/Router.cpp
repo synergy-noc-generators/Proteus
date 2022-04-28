@@ -34,6 +34,7 @@ void Router::deadlock_check(int packet_idle_cycle, VN vn) {
         std::cout << "Possible Deadlock Detected in node "<< this->router_id << ", current idle cycle for this packet = "<< packet_idle_cycle  << std::endl;
 #endif
         this->deadlock = true;
+        this->random_counter_reset += random_counter_reset+1;
     }
 
 }
@@ -295,6 +296,109 @@ int Router::Route_Compute_random_oblivious(INT16 dst_id, int input_port, bool ra
     return direction;
 }
 
+int Router::Route_Compute_north_last(INT16 dst_id, int input_port, bool random_counter) {
+    if (dst_id == this->router_id) {
+        return EVICT;
+    }
+
+    int my_x = this->router_id % NUM_COLS;
+    int my_y = this->router_id / NUM_COLS;
+
+    int dst_x = dst_id % NUM_COLS;
+    int dst_y = dst_id / NUM_COLS;
+
+//     int x_hops = std::abs(dst_x - my_x);
+//     int y_hops = std::abs(dst_y - my_y);
+    int x_hops = (dst_x - my_x) >= 0 ? dst_x - my_x : my_x - dst_x;
+    int y_hops = (dst_y - my_y) >= 0 ? dst_y - my_y : my_y - dst_y;
+
+    bool x_dirn = (dst_x >= my_x);
+    bool y_dirn = (dst_y >= my_y);
+
+    int direction = ERROR;
+    if (x_hops == 0) {
+        if (y_dirn > 0) {
+            direction = SOUTH;
+        } else {
+            direction = NORTH;
+        }
+    } else if (y_hops == 0) {
+        if (x_dirn > 0) {
+            direction = EAST;
+        } else {
+            direction = WEST;
+        }
+    } else {
+        if (x_dirn && y_dirn) { // Quadrant I
+            direction = EAST ;
+        } else if (!x_dirn && y_dirn) { // Quadrant II
+            direction = WEST ;
+        } else if (!x_dirn && !y_dirn) { // Quadrant III
+            direction = random_counter ? WEST : SOUTH;
+        } else { // Quadrant IV
+            direction = random_counter ? EAST : SOUTH;
+        }
+    }
+
+    if (direction == input_port) {
+        return ERROR;
+    }
+
+    return direction;
+}
+
+int Router::Route_Compute_west_first(INT16 dst_id, int input_port, bool random_counter) {
+    if (dst_id == this->router_id) {
+        return EVICT;
+    }
+
+    int my_x = this->router_id % NUM_COLS;
+    int my_y = this->router_id / NUM_COLS;
+
+    int dst_x = dst_id % NUM_COLS;
+    int dst_y = dst_id / NUM_COLS;
+
+//     int x_hops = std::abs(dst_x - my_x);
+//     int y_hops = std::abs(dst_y - my_y);
+    int x_hops = (dst_x - my_x) >= 0 ? dst_x - my_x : my_x - dst_x;
+    int y_hops = (dst_y - my_y) >= 0 ? dst_y - my_y : my_y - dst_y;
+
+    bool x_dirn = (dst_x >= my_x);
+    bool y_dirn = (dst_y >= my_y);
+
+    int direction = ERROR;
+    if (x_hops == 0) {
+        if (y_dirn > 0) {
+            direction = SOUTH;
+        } else {
+            direction = NORTH;
+        }
+    } else if (y_hops == 0) {
+        if (x_dirn > 0) {
+            direction = EAST;
+        } else {
+            direction = WEST;
+        }
+    } else {
+        if (x_dirn && y_dirn) { // Quadrant I
+            direction = random_counter ? EAST : NORTH;
+        } else if (!x_dirn && y_dirn) { // Quadrant II
+            direction = WEST;
+        } else if (!x_dirn && !y_dirn) { // Quadrant III
+            direction = WEST;
+        } else { // Quadrant IV
+            direction = random_counter ? EAST : SOUTH;
+        }
+    }
+
+    if (direction == input_port) {
+        return ERROR;
+    }
+
+    return direction;
+}
+
+
 int Router::Route_Compute_XY(INT16 dst_id, int input_port) {
     if (dst_id == this->router_id) {
         return EVICT;
@@ -340,12 +444,24 @@ int Router::Route_Compute_XY(INT16 dst_id, int input_port) {
 
 
 INT16 Router::Output_Compute(INT16 dst_id, int input_port) {
-    static bool random_counter = false; // fake random number decider: false -> east, true -> west
-    random_counter = !random_counter;
+//     static bool random_counter = false; // fake random number decider: false -> east, true -> west
+    // fake random number decider: false -> east, true -> west
+    if(this->random_counter ==1)
+        this->random_counter = this-> random_counter_reset;
+    if(this->random_counter[0]==0)  //Even
+        this->random_counter = this->random_counter>>1;
+    else
+        this->random_counter = (3*this->random_counter+1);
     if (this->routing_algorithm == RANDOM_OBLIVIOUS) { // random_oblivious
-        return Route_Compute_random_oblivious(dst_id, input_port, random_counter);
+        return Route_Compute_random_oblivious(dst_id, input_port, this->random_counter[0]);
     } else if (this->routing_algorithm == XY) {
         return Route_Compute_XY(dst_id, input_port);
+    } else if (this->routing_algorithm == NORTH_LAST)
+    {
+        return Route_Compute_north_last(dst_id, input_port, this->random_counter[0]);
+    } else if (this->routing_algorithm == WEST_FIRST)
+    {
+        return Route_Compute_west_first(dst_id, input_port, this->random_counter[0]);
     }
 
     return ERROR;

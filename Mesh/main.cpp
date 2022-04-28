@@ -31,18 +31,19 @@ void mesh(
 int main ()
 {
     
-    int deadlock_cycles = 100000;
+    int deadlock_cycles = 1000;
     int num_packets_per_node = 2000;
-    int packet_inject_period = 3;
-    int routing_algorithm = XY;
+    int packet_inject_period = 2;
+    int routing_algorithm = WEST_FIRST;
     int traffic_pattern = BIT_COMPLEMENT;
     int total_packets_sent = 0;
     int total_packets_recieved = 0;
     long total_latency = 0;
     int overall_max_latency = 0;
     int num_node_deadlock_detected = 0;
-    
-    mesh (
+   
+   for(;packet_inject_period>=1;packet_inject_period--) 
+   {    mesh (
         deadlock_cycles,
         num_packets_per_node,
         packet_inject_period,
@@ -55,12 +56,13 @@ int main ()
         num_node_deadlock_detected
     );
 
+    std::cout << "Packet Injection period: " << packet_inject_period << std::endl;
     std::cout << "Total packets recieved: " << total_packets_recieved << std::endl;
     std::cout << "Total packets sent: " << total_packets_sent << std::endl;
     std::cout << "Average latency: " << (float)total_latency/(num_packets_per_node*NUM_NODES) << std::endl;
     std::cout << "Max latency: " << overall_max_latency << std::endl;
     std::cout << "Number of nodes detect deadlock: " << num_node_deadlock_detected << std::endl;
-    
+}
 
     std::cout << "Simulation SUCCESSFUL!!!" << std::endl;
 //         std::cout << "Simulation FAILED :(" << std::endl;

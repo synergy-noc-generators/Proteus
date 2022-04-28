@@ -164,7 +164,8 @@ void mesh(
         {   
             total_packets_recieved_inner += node[i].get_packets_recieved();
 #ifdef DEBUG
-//         std::cout << "Node : "<<i<< " , num packets added till now = "<< node[i].get_packets_sent() << std::endl;
+        std::cout << "Node : "<<i<< " , num packets sent till now = "<< node[i].get_packets_sent() << std::endl;
+        std::cout << "Node : "<<i<< " , num packets recieved till now = "<< node[i].get_packets_recieved() << std::endl;
 #endif
         }
         noc_vn.inc_cycle();

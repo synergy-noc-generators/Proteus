@@ -32,6 +32,8 @@ typedef ap_int<16> INT16;
 
 #define RANDOM_OBLIVIOUS  0
 #define XY                1
+#define NORTH_LAST        2
+#define WEST_FIRST        3
 
 
 // Traffic patterns
