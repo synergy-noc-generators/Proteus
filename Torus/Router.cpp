@@ -199,7 +199,7 @@ bool Router::Buffer_Write(Packet packet, int buffer_location) {
         }
 
 #ifdef DEBUG 
-         std::cout << " Writing to buffer east at location " << location << " , the packet V: "<< packet.valid << " timestamp " << packet.timestamp << " source " << packet.source << " dest " << packet.dest << std::endl ;
+         std::cout << " Writing to node " << this->router_id<< " buffer east at location " << location << " , the packet V: "<< packet.valid << " timestamp " << packet.timestamp << " source " << packet.source << " dest " << packet.dest << std::endl ;
 #endif
         buffer_east[location] = packet;
         return true;
@@ -210,7 +210,7 @@ bool Router::Buffer_Write(Packet packet, int buffer_location) {
             return false;
         }
 #ifdef DEBUG 
-         std::cout << " Writing to buffer west at location " << location << " , the packet V: "<< packet.valid << " timestamp " << packet.timestamp << " source " << packet.source << " dest " << packet.dest << std::endl ;
+         std::cout << " Writing to node " << this->router_id<< " buffer west at location " << location << " , the packet V: "<< packet.valid << " timestamp " << packet.timestamp << " source " << packet.source << " dest " << packet.dest << std::endl ;
 #endif
         buffer_west[location] = packet;
         return true;
@@ -222,7 +222,7 @@ bool Router::Buffer_Write(Packet packet, int buffer_location) {
         }
 
 #ifdef DEBUG 
-         std::cout << " Writing to buffer north at location " << location << " , the packet V: "<< packet.valid << " timestamp " << packet.timestamp << " source " << packet.source << " dest " << packet.dest << std::endl ;
+         std::cout << " Writing to node " << this->router_id<< " buffer north at location " << location << " , the packet V: "<< packet.valid << " timestamp " << packet.timestamp << " source " << packet.source << " dest " << packet.dest << std::endl ;
 #endif
         buffer_north[location] = packet;
         return true;
@@ -235,7 +235,7 @@ bool Router::Buffer_Write(Packet packet, int buffer_location) {
         }
 
 #ifdef DEBUG 
-         std::cout << " Writing to buffer south at location " << location << " , the packet V: "<< packet.valid << " timestamp " << packet.timestamp << " source " << packet.source << " dest " << packet.dest << std::endl ;
+         std::cout << " Writing to node " << this->router_id<< " buffer south at location " << location << " , the packet V: "<< packet.valid << " timestamp " << packet.timestamp << " source " << packet.source << " dest " << packet.dest << std::endl ;
 #endif
         buffer_south[location] = packet;
         return true;
@@ -262,7 +262,6 @@ int Router::Route_Compute_random_oblivious(INT16 dst_id, int input_port, bool ra
 
     bool x_dirn = (dst_x >= my_x);
     bool y_dirn = (dst_y >= my_y);
-
     int direction = ERROR;
     if (x_hops == 0) {
         if (y_dirn > 0) {
@@ -308,20 +307,23 @@ int Router::Route_Compute_XY(INT16 dst_id, int input_port) {
 
     //     int x_hops = abs(dst_x - my_x);
     //     int y_hops = abs(dst_y - my_y);
-    int x_hops = (dst_x - my_x) >= 0 ? dst_x - my_x : my_x - dst_x;
-    int y_hops = (dst_y - my_y) >= 0 ? dst_y - my_y : my_y - dst_y;
+    int east_hops = (dst_x - my_x) >= 0 ? dst_x - my_x : NUM_COLS - my_x + dst_x;
+    int west_hops = (dst_x - my_x) > 0 ? NUM_COLS - dst_x + my_x :  my_x - dst_x ;
+    int south_hops = (dst_y - my_y) >= 0 ? dst_y - my_y : NUM_ROWS - my_y + dst_y;
+    int north_hops = (dst_y - my_y) > 0 ? NUM_ROWS - dst_y + my_y : my_y - dst_y  ;
 
-    bool x_dirn = (dst_x >= my_x);
-    bool y_dirn = (dst_y >= my_y);
+    bool x_dirn = (east_hops < west_hops);
+    bool y_dirn = (south_hops < north_hops);
+
 
     int direction = ERROR;
-    if (x_hops > 0) {
+    if (east_hops != 0 && west_hops != 0) {
         if (x_dirn) {
             direction = EAST;
         } else {
             direction = WEST;
         }
-    } else if (y_hops > 0) {
+    } else if (north_hops != 0 && south_hops != 0) {
         if (y_dirn) {
             direction = SOUTH;
         } else {
@@ -334,7 +336,9 @@ int Router::Route_Compute_XY(INT16 dst_id, int input_port) {
     if (direction == input_port) {
         return ERROR;
     }
-
+#ifdef DEBUG
+        std::cout << " node "<< this->router_id << ", dest = "<< dst_id << ", Hops W = "<<west_hops<< ",E = "<<east_hops<<" , N =" <<north_hops<<",S="<<south_hops<<", Direction = "<< direction  << std::endl;
+#endif
     return direction;
 }
 

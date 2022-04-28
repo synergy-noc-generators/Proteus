@@ -33,9 +33,9 @@ int main ()
     
     int deadlock_cycles = 100000;
     int num_packets_per_node = 2000;
-    int packet_inject_period = 1;
-    int routing_algorithm = RANDOM_OBLIVIOUS;
-    int traffic_pattern = SHUFFLE;
+    int packet_inject_period = 3;
+    int routing_algorithm = XY;
+    int traffic_pattern = BIT_COMPLEMENT;
     int total_packets_sent = 0;
     int total_packets_recieved = 0;
     long total_latency = 0;

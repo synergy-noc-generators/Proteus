@@ -70,7 +70,7 @@ void torus(
 
     int total_packets_recieved_inner = 0;
     while(total_packets_recieved_inner < num_packets_per_node*NUM_NODES)
-//     while(noc_vn.get_current_cycle() < 1000)
+//     while(noc_vn.get_current_cycle() < 100)
     {
 
         for (int i = 0 ; i < (NUM_NODES); i++)

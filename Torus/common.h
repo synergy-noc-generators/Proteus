@@ -15,7 +15,7 @@ typedef ap_int<16> INT16;
 
 #define BUFFER_SIZE    4
 
-#define NODES_PER_ROW  7
+#define NODES_PER_ROW  3
 #define NUM_NODES      NODES_PER_ROW*NODES_PER_ROW
 #define NUM_NODES_LOG2 5
 #define NUM_COLS       NODES_PER_ROW
