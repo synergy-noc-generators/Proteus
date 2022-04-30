@@ -1,4 +1,5 @@
-AUTOPILOT_ROOT := /tools/reconfig/xilinx/Vitis/2021.1/Vitis_HLS/2021.1/
+#AUTOPILOT_ROOT := /tools/reconfig/xilinx/Vitis/2021.1/Vitis_HLS/2021.1/
+AUTOPILOT_ROOT := /tools/Xilinx/Vitis_HLS/2021.2/
 
 ASSEMBLE_SRC_ROOT := .
 IFLAG += -I "${AUTOPILOT_ROOT}/include"

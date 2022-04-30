@@ -134,7 +134,7 @@ void torus(
                 link_north[i] = node[i].router_phase_two(onoff_switch_south[i-NODES_PER_ROW], NORTH);
 
             if(i/NODES_PER_ROW == (NUM_ROWS-1))                                                 // Last Row(South Most)
-                link_south[i] = node[i].router_phase_two(onoff_switch_north[i-(NUM_NODES - NODES_PER_ROW)], SOUTH);
+                link_south[i] = node[i].router_phase_two(onoff_switch_north[i-NUM_NODES + NODES_PER_ROW], SOUTH);
             else
                 link_south[i] = node[i].router_phase_two(onoff_switch_north[i+NODES_PER_ROW], SOUTH);
 
@@ -144,7 +144,7 @@ void torus(
                 link_west[i] = node[i].router_phase_two(onoff_switch_east[i-1], WEST);
             
             if(i%NODES_PER_ROW == (NUM_COLS-1))                                                 //East Row
-                link_east[i] = node[i].router_phase_two(onoff_switch_west[i-NODES_PER_ROW-1], EAST);
+                link_east[i] = node[i].router_phase_two(onoff_switch_west[i-NODES_PER_ROW+1], EAST);
             else
                 link_east[i] = node[i].router_phase_two(onoff_switch_west[i+1], EAST);
 
@@ -162,7 +162,8 @@ void torus(
         {   
             total_packets_recieved_inner += node[i].get_packets_recieved();
 #ifdef DEBUG
-//         std::cout << "Node : "<<i<< " , num packets added till now = "<< node[i].get_packets_sent() << std::endl;
+        std::cout << "Node : "<<i<< " , num packets added till now = "<< node[i].get_packets_sent() << std::endl;
+        std::cout << "Node : "<<i<< " , num packets sent till now = "<< node[i].get_packets_recieved() << std::endl;
 #endif
         }
         noc_vn.inc_cycle();

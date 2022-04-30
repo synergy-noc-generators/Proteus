@@ -33,15 +33,17 @@ int main ()
     
     int deadlock_cycles = 100000;
     int num_packets_per_node = 2000;
-    int packet_inject_period = 1;
-    int routing_algorithm = RANDOM_OBLIVIOUS;
+    int routing_algorithm = XY;
     int traffic_pattern = BIT_COMPLEMENT;
     int total_packets_sent = 0;
     int total_packets_recieved = 0;
     long total_latency = 0;
     int overall_max_latency = 0;
     int num_node_deadlock_detected = 0;
-   
+    for(int traffic_pattern = 1 ; traffic_pattern < 5;traffic_pattern++)
+    {
+//     traffic_pattern = 2;
+    int packet_inject_period = 1;
     for (;packet_inject_period<=7;packet_inject_period++)
     { 
     torus (
@@ -57,15 +59,18 @@ int main ()
         num_node_deadlock_detected
     );
 
-    std::cout << "Injection Rate: " << packet_inject_period << std::endl;
-    std::cout << "Total packets recieved: " << total_packets_recieved << std::endl;
-    std::cout << "Total packets sent: " << total_packets_sent << std::endl;
-    std::cout << "Average latency: " << (float)total_latency/(num_packets_per_node*NUM_NODES) << std::endl;
-    std::cout << "Max latency: " << overall_max_latency << std::endl;
-    std::cout << "Number of nodes detect deadlock: " << num_node_deadlock_detected << std::endl;
+//     std::cout << "Injection Rate: " << packet_inject_period << std::endl;
+//     std::cout << "Total packets recieved: " << total_packets_recieved << std::endl;
+//     std::cout << "Total packets sent: " << total_packets_sent << std::endl;
+//     std::cout << "Average latency: " << (float)total_latency/(num_packets_per_node*NUM_NODES) << std::endl;
+    std::cout << (float)total_latency/(num_packets_per_node*NUM_NODES) << ",";
+//     std::cout << "Max latency: " << overall_max_latency << std::endl;
+//     std::cout << "Number of nodes detect deadlock: " << num_node_deadlock_detected << std::endl;
     
     }
-    std::cout << "Simulation SUCCESSFUL!!!" << std::endl;
+    std::cout << std::endl;
+}
+    std::cout << " \n Simulation SUCCESSFUL!!!" << std::endl;
 //         std::cout << "Simulation FAILED :(" << std::endl;
     std::cout << "----------------------------------------" << std::endl;
 

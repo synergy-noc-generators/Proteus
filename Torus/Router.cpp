@@ -386,6 +386,9 @@ void Router::Router_Compute() {
 Packet Router::Switch_Allocator(INT16 backpressure, int output_port) {
     Packet ret;
     ret.valid = false;
+#ifdef DEBUG
+    std::cout << "Entering switch allocator for node"<<this->router_id << ", output port: "<<output_port<<std::endl;
+#endif
     if (backpressure) {
         return ret;
     }
@@ -409,7 +412,9 @@ Packet Router::Switch_Allocator(INT16 backpressure, int output_port) {
     candidate_pool[EAST] = east_route_info[candidate_pool[EAST]] == output_port ? candidate_pool[EAST] : ERROR;
     candidate_pool[WEST] = west_route_info[candidate_pool[WEST]] == output_port ? candidate_pool[WEST] : ERROR;
     candidate_pool[SOUTH] = south_route_info[candidate_pool[SOUTH]] == output_port ? candidate_pool[SOUTH] : ERROR;
-
+#ifdef DEBUG
+    std::cout << "N E W S :"<< candidate_pool[NORTH]<< candidate_pool[EAST]<<candidate_pool[WEST]<<candidate_pool[SOUTH]<<std::endl;
+#endif
     int final_candidate = ERROR;
     int least_candidate_timestamp = ERROR;
     for (int i = 1; i < 5; i++) {
@@ -428,7 +433,6 @@ Packet Router::Switch_Allocator(INT16 backpressure, int output_port) {
 
     if (final_candidate == ERROR) {
         int location = find_oldest_packet(this->buffer_local);
-//         std::cout << "We are here \n";
         if (local_route_info[location] == output_port) {
             packet_idle_cycle_local[location] = 0;
             ret = buffer_local[location];

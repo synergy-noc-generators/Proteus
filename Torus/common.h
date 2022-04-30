@@ -15,9 +15,9 @@ typedef ap_int<16> INT16;
 
 #define BUFFER_SIZE    4
 
-#define NODES_PER_ROW  3
+#define NODES_PER_ROW  8
 #define NUM_NODES      NODES_PER_ROW*NODES_PER_ROW
-#define NUM_NODES_LOG2 5
+#define NUM_NODES_LOG2 log2(NUM_NODES)
 #define NUM_COLS       NODES_PER_ROW
 #define NUM_ROWS       NODES_PER_ROW
 #define DATA_WIDTH     22       //16+2log2(NUM_NODES)   = 16 +2*3 
@@ -39,8 +39,8 @@ typedef ap_int<16> INT16;
 #define TRANSPOSE      1
 #define BIT_REVERSE    2
 #define BIT_ROTATION   3
-#define NEIGHBOR       4
-#define SHUFFLE        5
+#define SHUFFLE        4
+#define NEIGHBOR       5
 
 struct Packet {
     bool valid;
