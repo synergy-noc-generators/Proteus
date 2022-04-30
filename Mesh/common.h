@@ -17,7 +17,7 @@ typedef ap_int<16> INT16;
 
 #define NODES_PER_ROW  3
 #define NUM_NODES      NODES_PER_ROW*NODES_PER_ROW
-#define NUM_NODES_LOG2 5
+#define NUM_NODES_LOG2 5 // log2 can only be used in C level simulation, need to change it to hard code number when sythesis
 #define NUM_COLS       NODES_PER_ROW
 #define NUM_ROWS       NODES_PER_ROW
 #define DATA_WIDTH     22       //16+2log2(NUM_NODES)   = 16 +2*3 
