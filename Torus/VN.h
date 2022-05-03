@@ -2,7 +2,7 @@
 Description: This is the Virtual Network class header file
 
 Authors:    Abhimanyu Bambhaniya (abambhaniya3@gatech.edu)
-            Yangyu Chen (yangyuchen@gatech.edu)
+            Yangyu Chen (ychen940@gatech.edu)
 */
 
 #ifndef __VN_H__

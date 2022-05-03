@@ -2,7 +2,7 @@
 Description: This is the header file providing common used Macro and struct
 
 Authors:    Abhimanyu Bambhaniya (abambhaniya3@gatech.edu)
-            Yangyu Chen (yangyuchen@gatech.edu)
+            Yangyu Chen (ychen940@gatech.edu)
 */
 
 #ifndef __COMMON_H__

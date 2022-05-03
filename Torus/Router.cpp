@@ -2,7 +2,7 @@
 Description: This is the router microarchitecture and logic class
 
 Authors:    Abhimanyu Bambhaniya (abambhaniya3@gatech.edu)
-            Yangyu Chen (yangyuchen@gatech.edu)
+            Yangyu Chen (ychen940@gatech.edu)
 */
 
 #include "Router.h"
