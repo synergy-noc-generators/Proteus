@@ -10,7 +10,8 @@ module packet_generate_local #(
     parameter PACKET_SIZE = 49,
     parameter BUFFER_SIZE = 4,
     parameter NUM_PACKETS_PER_NODE = 20,
-    parameter INJECT_CYCLE = 2
+    parameter INJECT_CYCLE = 2,
+    parameter ROUTING = 0
 ) (
     clk,
     rst_n,
@@ -19,6 +20,7 @@ module packet_generate_local #(
 
     packet_wr_en,
     packet,
+    packet_route_info,
     
     total_packet_sent
 );
@@ -43,10 +45,14 @@ module packet_generate_local #(
     reg [15 : 0] incre_cnt, decre_cnt, packets_wait_cnt;
     reg [63 : 0] total_packet_sent_inner;
 
-    assign incre_cnt = inject_clk_ref == INJECT_CYCLE - 1 ? 1'b1 : 1'b0;
-    assign decre_cnt = packet_wr_en && packets_wait_cnt > 0 ? 1'b1 : 1'b0;
+    wire            has_packet_generate;
+    wire [15 : 0]   packet_route_info_inner;
+    assign has_packet_generate = packet_wr_en && packets_wait_cnt > 0;
 
-    always @(*) begin
+    assign incre_cnt = inject_clk_ref == INJECT_CYCLE - 1 ? 1'b1 : 1'b0;
+    assign decre_cnt = has_packet_generate ? 1'b1 : 1'b0;
+
+    always_comb begin
         if (~rst_n) begin
             router_dst = 0;
         end
@@ -60,23 +66,37 @@ module packet_generate_local #(
         end
     end
 
-    always @(posedge clk or negedge rst_n) begin
+    always_ff @(posedge clk or negedge rst_n) begin
         if (~rst_n) begin
             packet_inner <= 0;
             packets_wait_cnt <= 0;
             total_packet_sent_inner <= 0;
         end
         else begin
-            if (packet_wr_en && packets_wait_cnt > 0) begin
+            if (has_packet_generate) begin
                 packet_inner <= {1'b1, clk_counter, router_src, router_dst};
                 total_packet_sent_inner <= total_packet_sent_inner + 1'b1;
             end
 
-            packets_wait_cnt <= packets_wait_cnt + incre_cnt + decre_cnt;
+            packets_wait_cnt <= packets_wait_cnt + incre_cnt - decre_cnt;
         end
     end
 
+    route_compute #(
+        .ROUTER_ID(ROUTER_ID),
+        .ROUTING(ROUTING),
+        .PACKET_SIZE(PACKET_SIZE),
+        .IN_PORT(2'b00)
+    ) local (
+        .clk(clk),
+        .rst_n(rst_n),
+        .in_buffer({1'b1, clk_counter, router_src, router_dst}),
+        .route_update_en(has_packet_generate),
+        .out_dir(packet_route_info_inner)
+    );
+
     assign packet = packet_inner;
+    assign packet_route_info = packet_route_info_inner;
     assign total_packet_sent = total_packet_sent_inner;
 
 endmodule

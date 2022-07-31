@@ -29,7 +29,7 @@ module ring #(
     reg [15 : 0]    clk_counter;
     reg [15 : 0]    inject_clk_ref;
 
-    always @(posedge clk or negedge rst_n) begin
+    always_ff @(posedge clk or negedge rst_n) begin
         if (~rst_n) begin
             clk_counter <= 0;
             inject_clk_ref <= 0;
@@ -127,8 +127,6 @@ module ring #(
             .total_packet_recieve(total_packet_recieve[NUM_NODES - 1]),
             .total_latency(total_latency[NUM_NODES - 1]),
         );
-
-        end
     
     endgenerate
 endmodule
