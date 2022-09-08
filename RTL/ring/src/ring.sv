@@ -21,7 +21,7 @@ module ring #(
     reg [63 : 0] total_latency [NUM_NODES - 1 : 0];
 
     reg [PACKET_SIZE - 1 : 0] link_east [NUM_NODES - 1 : 0];
-    reg [PACKET_SIZE - 1 : 0] link_WEST [NUM_NODES - 1 : 0];
+    reg [PACKET_SIZE - 1 : 0] link_west [NUM_NODES - 1 : 0];
 
     reg [15 : 0]    onoff_switch_east [NUM_NODES - 1 : 0];
     reg [15 : 0]    onoff_switch_west [NUM_NODES - 1 : 0];
@@ -41,8 +41,6 @@ module ring #(
     end
     
 
-    genvar i;
-    generate
         router #(
             .NUM_NODES(NUM_NODES),
             .ROUTER_ID(0),
@@ -68,9 +66,11 @@ module ring #(
 
             .total_packet_sent(total_packet_sent[0]),
             .total_packet_recieve(total_packet_recieve[0]),
-            .total_latency(total_latency[0]),
+            .total_latency(total_latency[0])
         );
 
+    genvar i;
+    generate
         for (i = 1; i < NUM_NODES - 1; i = i + 1) begin
             router #(
                 .NUM_NODES(NUM_NODES),
@@ -89,7 +89,7 @@ module ring #(
                 .link_east_in(link_west[i + 1]),
                 .link_west_in(link_east[i - 1]),
                 .backpressure_east_rd(onoff_switch_west[i + 1]),
-                .backpressure_west_rd(onoff_switch_east[i - 1])
+                .backpressure_west_rd(onoff_switch_east[i - 1]),
                 .link_east_out(link_east[i]),
                 .link_west_out(link_west[i]),
                 .backpressure_east_wr(onoff_switch_east[i]),
@@ -97,8 +97,10 @@ module ring #(
 
                 .total_packet_sent(total_packet_sent[i]),
                 .total_packet_recieve(total_packet_recieve[i]),
-                .total_latency(total_latency[i]),
+                .total_latency(total_latency[i])
         );
+    end
+    endgenerate
 
         router #(
             .NUM_NODES(NUM_NODES),
@@ -117,7 +119,7 @@ module ring #(
             .link_east_in(link_west[0]),
             .link_west_in(link_east[NUM_NODES - 2]),
             .backpressure_east_rd(onoff_switch_west[0]),
-            .backpressure_west_rd(onoff_switch_east[NUM_NODES - 2])
+            .backpressure_west_rd(onoff_switch_east[NUM_NODES - 2]),
             .link_east_out(link_east[NUM_NODES - 1]),
             .link_west_out(link_west[NUM_NODES - 1]),
             .backpressure_east_wr(onoff_switch_east[NUM_NODES - 1]),
@@ -125,8 +127,7 @@ module ring #(
 
             .total_packet_sent(total_packet_sent[NUM_NODES - 1]),
             .total_packet_recieve(total_packet_recieve[NUM_NODES - 1]),
-            .total_latency(total_latency[NUM_NODES - 1]),
+            .total_latency(total_latency[NUM_NODES - 1])
         );
     
-    endgenerate
 endmodule

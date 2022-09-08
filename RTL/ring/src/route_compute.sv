@@ -15,7 +15,7 @@ module route_info_update #(
 
     input clk, rst_n;
 
-    input [PACKET_SIZE - 1] in_buffer;
+    input [PACKET_SIZE-1:0] in_buffer;
     input                   route_update_en;
     
     output [1 : 0] out_dir;

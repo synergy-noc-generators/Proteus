@@ -1,7 +1,7 @@
 `timescale 1ns / 1ps
 
 module router #(
-    parameter NUM_NODES = NUM_NODES,
+    parameter NUM_NODES = 4,
     parameter ROUTER_ID = 0,
     parameter PACKET_SIZE = 49, // 1 bit VALID, 16 bits timestamp, 16 bits source, 16 bits destination
     parameter BUFFER_SIZE = 4,
@@ -42,10 +42,10 @@ module router #(
     input [PACKET_SIZE - 1 : 0] link_east_in, link_west_in;
     input backpressure_east_rd, backpressure_west_rd;
 
-    output [PACKET_SIZE - 1 : 0] link_east_out, link_west_out;
-    output backpressure_east_wr, backpressure_west_wr;
+    output logic [PACKET_SIZE - 1 : 0] link_east_out, link_west_out;
+    output logic backpressure_east_wr, backpressure_west_wr;
 
-    output [63 : 0] total_packet_sent, total_packet_recieve, total_latency;
+    output logic [63 : 0] total_packet_sent, total_packet_recieve, total_latency;
 
     wire [63 : 0] total_packet_sent_inner;
     reg  [63 : 0] total_packet_recieve_inner, total_latency_inner;
@@ -55,9 +55,9 @@ module router #(
     reg [PACKET_SIZE - 1 : 0] buffer_west [BUFFER_SIZE - 1 : 0];
     reg [PACKET_SIZE - 1 : 0] buffer_local [BUFFER_SIZE - 1 : 0];
 
-    reg [15 : 0] buffer_east_route_info [BUFFER_SIZE - 1 : 0];
-    reg [15 : 0] buffer_west_route_info [BUFFER_SIZE - 1 : 0];
-    reg [15 : 0] buffer_local_route_info [BUFFER_SIZE - 1 : 0];
+    reg [1 : 0] buffer_east_route_info [BUFFER_SIZE - 1 : 0];
+    reg [1 : 0] buffer_west_route_info [BUFFER_SIZE - 1 : 0];
+    reg [1 : 0] buffer_local_route_info [BUFFER_SIZE - 1 : 0];
 
     // reg [ptr_len - 1 : 0] east_rd_ptr, west_rd_ptr, local_rd_ptr;
     // reg [ptr_len - 1 : 0] east_wr_ptr, west_wr_ptr, local_wr_ptr;
@@ -65,11 +65,14 @@ module router #(
     wire [ptr_len - 1 : 0] empty_east, empty_west, empty_local;
     wire                   empty_east_found, empty_west_found, empty_local_found;
 
+    logic [15 : 0] out_packet_pos_east, out_packet_pos_west;
+    logic          out_packet_pos_valid_east_out, out_packet_pos_valid_west_out;
+    logic          out_packet_pos_in_east, out_packet_pos_in_west;
     // find all the empty buffer position, and if the *_valid is 0, means no empty spot is found
     find_empty_buffer #(
         .BUFFER_SIZE(BUFFER_SIZE),
-        .PACKET_SIZE(PACKET_SIZE)
-        .PTR_LEN(ptr_len),
+        .PACKET_SIZE(PACKET_SIZE),
+        .PTR_LEN(ptr_len)
     ) east (
         .clk(clk),
         .rst_n(rst_n),
@@ -80,8 +83,8 @@ module router #(
 
     find_empty_buffer #(
         .BUFFER_SIZE(BUFFER_SIZE),
-        .PACKET_SIZE(PACKET_SIZE)
-        .PTR_LEN(ptr_len),
+        .PACKET_SIZE(PACKET_SIZE),
+        .PTR_LEN(ptr_len)
     ) west (
         .clk(clk),
         .rst_n(rst_n),
@@ -92,9 +95,9 @@ module router #(
 
     find_empty_buffer #(
         .BUFFER_SIZE(BUFFER_SIZE),
-        .PACKET_SIZE(PACKET_SIZE)
-        .PTR_LEN(ptr_len),
-    ) local (
+        .PACKET_SIZE(PACKET_SIZE),
+        .PTR_LEN(ptr_len)
+    ) local_find_empyt_buffer (
         .clk(clk),
         .rst_n(rst_n),
         .buffer(buffer_local),
@@ -119,15 +122,15 @@ module router #(
         .rst_n(rst_n),
         .clk_counter(clk_counter),
         .inject_clk_ref(inject_clk_ref),
-        .packet_wr_en(empty_local_valid),
+        .packet_wr_en(1'b1),
         .packet(buffer_local[empty_local]),
         .packet_route_info(buffer_local_route_info[empty_local]),
         .total_packet_sent(total_packet_sent_inner)
     );
 
 
-    reg recieve_cnt = 0;
-    reg latency_add = 0;
+    logic [2:0] recieve_cnt,recieve_cnt_east,recieve_cnt_west,recieve_cnt_local;
+    logic [15:0] latency_add,latency_add_east,latency_add_west,latency_add_local;
 
     genvar i;
     generate
@@ -158,28 +161,35 @@ module router #(
                 .out_dir(buffer_west_route_info[i])
             );
 
+//             assign recieve_cnt = (buffer_east_route_info[i] == 2'b00) ;
+//                                  (buffer_west_route_info[i] == 2'b00) +
+//                                  (buffer_local_route_info[i] == 2'b00) ;
+            assign recieve_cnt = (buffer_east[i][PACKET_SIZE - 1]  == 1'b1 && buffer_east_route_info[i] == 2'b00) +
+                                 (buffer_west[i][PACKET_SIZE - 1]  == 1'b1 && buffer_west_route_info[i] == 2'b00) +
+                                 (buffer_local[i][PACKET_SIZE - 1] == 1'b1 && buffer_local_route_info[i] == 2'b00) ;
             always_comb begin
-                if (buffer_east[i][PACKET_SIZE - 1] == 1'b1 && buffer_east_route_info == 2'b00) begin
-                    recieve_cnt = recieve_cnt + 1;
-                    latency_add = latency_add + (clk_counter - buffer_east[i][47:32]);
-                end
+               latency_add = 0; 
+               if (buffer_east[i][PACKET_SIZE - 1] == 1'b1 && buffer_east_route_info[i] == 2'b00) begin
+//                    recieve_cnt = recieve_cnt + 1;
+                   latency_add = latency_add + (clk_counter - buffer_east[i][47:32]);
+               end
 
-                if (buffer_west[i][PACKET_SIZE - 1] == 1'b1 && buffer_west_route_info == 2'b00) begin
-                    recieve_cnt = recieve_cnt + 1;
-                    latency_add = latency_add + (clk_counter - buffer_east[i][47:32]);
-                end
+               if (buffer_west[i][PACKET_SIZE - 1] == 1'b1 && buffer_west_route_info[i] == 2'b00) begin
+//                    recieve_cnt = recieve_cnt + 1;
+                   latency_add = latency_add + (clk_counter - buffer_west[i][47:32]);
+               end
 
-                if (buffer_local[i][PACKET_SIZE - 1] == 1'b1 && buffer_local_route_info == 2'b00) begin
-                    recieve_cnt = recieve_cnt + 1;
-                    latency_add = latency_add + (clk_counter - buffer_east[i][47:32]);
-                end
+               if (buffer_local[i][PACKET_SIZE - 1] == 1'b1 && buffer_local_route_info[i] == 2'b00) begin
+//                    recieve_cnt = recieve_cnt + 1;
+                   latency_add = latency_add + (clk_counter - buffer_local[i][47:32]);
+               end
             end
 
             always_ff @(posedge clk or negedge rst_n) begin
                 if (~rst_n) begin
-                    buffer_east <= 0;
-                    buffer_west <= 0;
-                    buffer_local <= 0;
+                    buffer_east[i] <= 0;
+                    buffer_west[i] <= 0;
+                    buffer_local[i] <= 0;
                 end
                 else begin
                     // we will not be able to overwriting leaving packet with new packet immediately,
@@ -257,10 +267,7 @@ module router #(
         end
     end
 
-    wire [PACKET_SIZE - 1 : 0] link_east_out_inner, link_west_out_inner;
-    wire [15 : 0] out_packet_pos_east, out_packet_pos_west;
-    wire          out_packet_pos_valid_east_out, out_packet_pos_valid_west_out;
-    wire          out_packet_pos_in_east, out_packet_pos_in_west;
+    logic [PACKET_SIZE - 1 : 0] link_east_out_inner, link_west_out_inner;
 
     switch_allocator #(
         .OUT_PORT(2'b01),
@@ -283,7 +290,7 @@ module router #(
         .OUT_PORT(2'b10),
         .PACKET_SIZE(PACKET_SIZE),
         .BUFFER_SIZE(BUFFER_SIZE)
-    ) east_out (
+    ) west_out (
         .clk(clk),
         .rst_n(rst_n),
         .backpressure(backpressure_west_rd),
@@ -296,7 +303,7 @@ module router #(
         .out_packet_pos_in_high(out_packet_pos_in_west)
     );
 
-    assign link_east_out <= link_east_out_inner;
-    assign link_west_out <= link_west_out_inner;
+    assign link_east_out = link_east_out_inner;
+    assign link_west_out = link_west_out_inner;
 
 endmodule

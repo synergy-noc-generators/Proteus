@@ -29,13 +29,13 @@ module switch_allocator #(
     input [15 : 0] buffer_low_prior_route_info [BUFFER_SIZE - 1 : 0];
 
 
-    output [PACKET_SIZE -1 : 0] out_packet;
+    output logic [PACKET_SIZE -1 : 0] out_packet;
     output [15 : 0]             out_packet_pos;
     output                      out_packet_pos_valid;
     output                      out_packet_pos_in_high;
 
-    wire [15 : 0] min_high_temp0, min_high_temp1, min_high;
-    wire min_high_temp0_valid, min_high_temp1_valid, min_high_valid;
+    logic [15 : 0] min_high_temp0, min_high_temp1, min_high;
+    logic min_high_temp0_valid, min_high_temp1_valid, min_high_valid;
 
     always_comb begin
         if (~rst_n || backpressure) begin
@@ -112,8 +112,8 @@ module switch_allocator #(
         end
     end
 
-    wire [15 : 0] min_low_temp0, min_low_temp1, min_low;
-    wire min_low_temp0_valid, min_low_temp1_valid, min_low_valid;
+    logic [15 : 0] min_low_temp0, min_low_temp1, min_low;
+    logic min_low_temp0_valid, min_low_temp1_valid, min_low_valid;
 
     always_comb begin
         if (~rst_n || backpressure) begin

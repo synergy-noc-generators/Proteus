@@ -30,7 +30,7 @@ void ring(
 int main ()
 {
     
-    int deadlock_cycles = 100000;
+    int deadlock_cycles = 1000;
     int num_packets_per_node = 2000;
     int packet_inject_period = 1;
     int routing_algorithm = RANDOM_OBLIVIOUS;

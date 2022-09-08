@@ -32,6 +32,7 @@ module packet_generate_local #(
 
     input packet_wr_en;
 
+    output [15 : 0] packet_route_info;
     output [PACKET_SIZE - 1 : 0] packet;
     output [63 : 0]              total_packet_sent;
 
@@ -87,7 +88,7 @@ module packet_generate_local #(
         .ROUTING(ROUTING),
         .PACKET_SIZE(PACKET_SIZE),
         .IN_PORT(2'b00)
-    ) local (
+    ) local_route_compute (
         .clk(clk),
         .rst_n(rst_n),
         .in_buffer({1'b1, clk_counter, router_src, router_dst}),

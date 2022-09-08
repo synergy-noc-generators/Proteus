@@ -9,20 +9,14 @@ module find_empty_buffer #(
     input clk,
     input rst_n,
 
-    input buffer,
+    input [PACKET_SIZE - 1 : 0] buffer [BUFFER_SIZE - 1 : 0],
     
-    output empty_pos,
-    output empty_pos_found,
+    output logic [PTR_LEN - 1 : 0]    empty_pos,
+    output logic empty_pos_found
 );
 
-    input clk, rst_n;
-    input [PACKET_SIZE - 1 : 0] buffer [BUFFER_SIZE - 1 : 0];
-
-    output [PTR_LEN - 1 : 0]    empty_pos;
-    output                      empty_pos_found;
-
     reg [PTR_LEN - 1 : 0] empty_pos_inner;
-    wire                  empty_pos_found_inner;  
+    reg                   empty_pos_found_inner;  
 
     // hard code as buffer size of 4, index 0 takes the priority
     always_comb begin : check_empty
