@@ -197,8 +197,8 @@ module router #(
                     if (buffer_east[i][PACKET_SIZE - 1] == 1'b1 && buffer_east_route_info[i] == 2'b00) begin
                         buffer_east[i] <= 0;
                     end
-                    else if (out_packet_pos_in_east && out_packet_pos_valid_east_out) begin
-                        buffer_east[out_packet_pos_east] <= 0;
+                    else if (i == out_packet_pos_east && out_packet_pos_in_east && out_packet_pos_valid_east_out) begin
+                        buffer_east[i] <= 0;
                     end
                     else if (i == empty_east && empty_east_found) begin
                         buffer_east[i] <= link_east_in;
@@ -210,8 +210,8 @@ module router #(
                     if (buffer_west[i][PACKET_SIZE - 1] == 1'b1 && buffer_west_route_info[i] == 2'b00) begin
                         buffer_west[i] <= 0;
                     end
-                    else if (out_packet_pos_in_west && out_packet_pos_valid_west_out) begin
-                        buffer_west[out_packet_pos_west] <= 0;
+                    else if (i == out_packet_pos_west && out_packet_pos_in_west && out_packet_pos_valid_west_out) begin
+                        buffer_west[i] <= 0;
                     end
                     else if (i == empty_west && empty_west_found) begin
                         buffer_west[i] <= link_west_in;

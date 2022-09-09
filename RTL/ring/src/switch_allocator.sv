@@ -198,7 +198,7 @@ module switch_allocator #(
 
     always_ff @(posedge clk or negedge rst_n) begin
         if (~rst_n || backpressure) begin
-            out_packet <= 0;
+            out_packet_inner <= 0;
         end
         else begin
             if (min_high_valid && buffer_high_prior_route_info[min_high] != 0) begin
@@ -242,6 +242,11 @@ module switch_allocator #(
         end
     end
 
+
+    assign out_packet = out_packet_inner;
+    assign out_packet_pos = out_packet_pos_inner;
+    assign out_packet_pos_valid = out_packet_pos_valid_inner;
+    assign out_packet_pos_in_high = out_packet_pos_in_high_inner;
 
 
 endmodule
