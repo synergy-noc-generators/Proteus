@@ -52,7 +52,7 @@ module switch_allocator #(
                 min_high_temp0_valid = 1;
             end
             else if (buffer_high_prior[0][PACKET_SIZE - 1] == 1 && buffer_high_prior[1][PACKET_SIZE - 1] == 1) begin
-                min_high_temp0 = buffer_high_prior[0][47 : 32] >= buffer_high_prior[1][47 : 32] ? 1 : 0;
+                min_high_temp0 = (buffer_high_prior[0][47 : 32] >= buffer_high_prior[1][47 : 32]) ? 1 : 0;
                 min_high_temp0_valid = 1;
             end
             else begin
@@ -76,7 +76,7 @@ module switch_allocator #(
                 min_high_temp1 = 2;
                 min_high_temp1_valid = 1;
             end
-            else if (buffer_high_prior[0][PACKET_SIZE - 1] == 1 && buffer_high_prior[1][PACKET_SIZE - 1] == 1) begin
+            else if (buffer_high_prior[2][PACKET_SIZE - 1] == 1 && buffer_high_prior[3][PACKET_SIZE - 1] == 1) begin
                 min_high_temp1 = buffer_high_prior[2][47 : 32] >= buffer_high_prior[3][47 : 32] ? 3 : 2;
                 min_high_temp1_valid = 1;
             end
@@ -197,7 +197,10 @@ module switch_allocator #(
 
 
     always_ff @(posedge clk or negedge rst_n) begin
-        if (~rst_n || backpressure) begin
+        if (~rst_n ) begin
+            out_packet_inner <= 0;
+        end
+        else if(backpressure) begin
             out_packet_inner <= 0;
         end
         else begin

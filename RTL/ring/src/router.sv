@@ -129,8 +129,8 @@ module router #(
     );
 
 
-    logic [2:0] recieve_cnt,recieve_cnt_east,recieve_cnt_west,recieve_cnt_local;
-    logic [15:0] latency_add,latency_add_east,latency_add_west,latency_add_local;
+    logic [2:0] recieve_cnt[BUFFER_SIZE];
+    logic [15:0] latency_add[BUFFER_SIZE];
 
     genvar i;
     generate
@@ -161,27 +161,22 @@ module router #(
                 .out_dir(buffer_west_route_info[i])
             );
 
-//             assign recieve_cnt = (buffer_east_route_info[i] == 2'b00) ;
-//                                  (buffer_west_route_info[i] == 2'b00) +
-//                                  (buffer_local_route_info[i] == 2'b00) ;
-            assign recieve_cnt = (buffer_east[i][PACKET_SIZE - 1]  == 1'b1 && buffer_east_route_info[i] == 2'b00) +
-                                 (buffer_west[i][PACKET_SIZE - 1]  == 1'b1 && buffer_west_route_info[i] == 2'b00) +
-                                 (buffer_local[i][PACKET_SIZE - 1] == 1'b1 && buffer_local_route_info[i] == 2'b00) ;
             always_comb begin
-               latency_add = 0; 
+               latency_add[i] = 0; 
+               recieve_cnt[i] = 0; 
                if (buffer_east[i][PACKET_SIZE - 1] == 1'b1 && buffer_east_route_info[i] == 2'b00) begin
-//                    recieve_cnt = recieve_cnt + 1;
-                   latency_add = latency_add + (clk_counter - buffer_east[i][47:32]);
+                   recieve_cnt[i] = recieve_cnt[i] + 1;
+                   latency_add[i] = latency_add[i] + (clk_counter - buffer_east[i][47:32]);
                end
 
                if (buffer_west[i][PACKET_SIZE - 1] == 1'b1 && buffer_west_route_info[i] == 2'b00) begin
-//                    recieve_cnt = recieve_cnt + 1;
-                   latency_add = latency_add + (clk_counter - buffer_west[i][47:32]);
+                   recieve_cnt[i] = recieve_cnt[i] + 1;
+                   latency_add[i] = latency_add[i] + (clk_counter - buffer_west[i][47:32]);
                end
 
                if (buffer_local[i][PACKET_SIZE - 1] == 1'b1 && buffer_local_route_info[i] == 2'b00) begin
-//                    recieve_cnt = recieve_cnt + 1;
-                   latency_add = latency_add + (clk_counter - buffer_local[i][47:32]);
+                   recieve_cnt[i] = recieve_cnt[i] + 1;
+                   latency_add[i] = latency_add[i] + (clk_counter - buffer_local[i][47:32]);
                end
             end
 
@@ -224,11 +219,11 @@ module router #(
                     if (buffer_local[i][PACKET_SIZE - 1] == 1'b1 && buffer_local_route_info[i] == 2'b00) begin
                         buffer_local[i] <= 0;
                     end
-                    else if (!out_packet_pos_in_east && out_packet_pos_valid_east_out) begin
-                        buffer_local[out_packet_pos_east] <= 0;
+                    else if (i == out_packet_pos_east && !out_packet_pos_in_east && out_packet_pos_valid_east_out) begin
+                        buffer_local[i] <= 0;
                     end
-                    else if (!out_packet_pos_in_west && out_packet_pos_valid_west_out) begin
-                        buffer_local[out_packet_pos_west] <= 0;
+                    else if (i == out_packet_pos_west && !out_packet_pos_in_west && out_packet_pos_valid_west_out) begin
+                        buffer_local[i] <= 0;
                     end
                     else begin
                         buffer_local[i] <= buffer_local[i];
@@ -245,8 +240,8 @@ module router #(
             total_latency <= 0;
         end
         else begin
-            total_packet_recieve_inner <= total_packet_recieve_inner + recieve_cnt;
-            total_latency <= total_latency + latency_add;
+            total_packet_recieve_inner <= total_packet_recieve_inner + recieve_cnt[0]+ recieve_cnt[1]+ recieve_cnt[2]+ recieve_cnt[3];
+            total_latency <= total_latency + latency_add[0]+ latency_add[1]+ latency_add[2]+ latency_add[3];
         end
     end
 

@@ -32,7 +32,7 @@ module packet_generate_local #(
 
     input packet_wr_en;
 
-    output [15 : 0] packet_route_info;
+    output [1 : 0] packet_route_info;
     output [PACKET_SIZE - 1 : 0] packet;
     output [63 : 0]              total_packet_sent;
 
@@ -43,14 +43,15 @@ module packet_generate_local #(
 
     reg [PACKET_SIZE - 1 : 0] packet_inner;
 
-    reg [15 : 0] incre_cnt, decre_cnt, packets_wait_cnt;
+    wire incre_cnt, decre_cnt;
+    reg [15 : 0] packets_wait_cnt;
     reg [63 : 0] total_packet_sent_inner;
 
     wire            has_packet_generate;
-    wire [15 : 0]   packet_route_info_inner;
+    wire [1 : 0]   packet_route_info_inner;
     assign has_packet_generate = packet_wr_en && packets_wait_cnt > 0;
 
-    assign incre_cnt = inject_clk_ref == INJECT_CYCLE - 1 ? 1'b1 : 1'b0;
+    assign incre_cnt = (inject_clk_ref == INJECT_CYCLE - 1) ? 1'b1 : 1'b0;
     assign decre_cnt = has_packet_generate ? 1'b1 : 1'b0;
 
     always_comb begin

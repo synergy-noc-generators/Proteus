@@ -1,6 +1,6 @@
 `timescale 1ns / 1ps
 
-module route_info_update #(
+module route_compute #(
     parameter ROUTER_ID = 0,
     parameter ROUTING = 0, // 0 means random oblivous
     parameter PACKET_SIZE = 49,

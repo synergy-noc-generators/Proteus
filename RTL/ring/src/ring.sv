@@ -1,7 +1,7 @@
 `timescale 1ns / 1ps
 
 module ring #(
-    parameter NUM_NODES = 8,
+    parameter NUM_NODES = 4,
     parameter PACKET_SIZE = 49, // 1 bit VALID, 16 bits timestamp, 16 bits source, 16 bits destination
     parameter BUFFER_SIZE = 4,
     parameter INJECT_CYCLE = 2, // 1 packet every 2 cycles
@@ -23,8 +23,8 @@ module ring #(
     reg [PACKET_SIZE - 1 : 0] link_east [NUM_NODES - 1 : 0];
     reg [PACKET_SIZE - 1 : 0] link_west [NUM_NODES - 1 : 0];
 
-    reg [15 : 0]    onoff_switch_east [NUM_NODES - 1 : 0];
-    reg [15 : 0]    onoff_switch_west [NUM_NODES - 1 : 0];
+    reg     onoff_switch_east [NUM_NODES - 1 : 0];
+    reg     onoff_switch_west [NUM_NODES - 1 : 0];
 
     reg [15 : 0]    clk_counter;
     reg [15 : 0]    inject_clk_ref;
