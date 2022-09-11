@@ -74,13 +74,19 @@ module packet_generate_local #(
             packets_wait_cnt <= 0;
             total_packet_sent_inner <= 0;
         end
-        else begin
+        else if(total_packet_sent_inner <= NUM_PACKETS_PER_NODE)begin
             if (has_packet_generate) begin
                 packet_inner <= {1'b1, clk_counter, router_src, router_dst};
                 total_packet_sent_inner <= total_packet_sent_inner + 1'b1;
             end
+            else begin
+                packet_inner <= {1'b0, clk_counter, router_src, router_dst};
+            end
 
             packets_wait_cnt <= packets_wait_cnt + incre_cnt - decre_cnt;
+        end
+        else begin
+            packet_inner <= {PACKET_SIZE{1'b0}};
         end
     end
 

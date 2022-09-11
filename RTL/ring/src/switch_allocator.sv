@@ -25,8 +25,8 @@ module switch_allocator #(
     input [PACKET_SIZE - 1 : 0] buffer_high_prior [BUFFER_SIZE - 1 : 0];
     input [PACKET_SIZE - 1 : 0] buffer_low_prior [BUFFER_SIZE - 1 : 0];
 
-    input [15 : 0] buffer_high_prior_route_info [BUFFER_SIZE - 1 : 0];
-    input [15 : 0] buffer_low_prior_route_info [BUFFER_SIZE - 1 : 0];
+    input [1 : 0] buffer_high_prior_route_info [BUFFER_SIZE - 1 : 0];
+    input [1 : 0] buffer_low_prior_route_info [BUFFER_SIZE - 1 : 0];
 
 
     output logic [PACKET_SIZE -1 : 0] out_packet;

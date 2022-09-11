@@ -14,7 +14,7 @@ Authors:    Abhimanyu Bambhaniya (abambhaniya3@gatech.edu)
 typedef ap_int<16> INT16;
 
 #define BUFFER_SIZE  4
-#define NUM_NODES  4
+#define NUM_NODES  16
 #define DATA_WIDTH  22       //16+2log2(NUM_NODES)   = 16 +2*3 
 #define ERROR -1
 #define EAST 1

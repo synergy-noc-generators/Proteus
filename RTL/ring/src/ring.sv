@@ -7,7 +7,7 @@ module ring #(
     parameter INJECT_CYCLE = 2, // 1 packet every 2 cycles
     parameter NUM_PACKETS_PER_NODE = 20, // how many packets each node will inject
     parameter ROUTING = 0, // 0 means XY
-    parameter TRAFFIC_PATTERN = 0, // 0 means bit complement
+    parameter TRAFFIC_PATTERN = 0 // 0 means bit complement
 )(
     clk,
     rst_n

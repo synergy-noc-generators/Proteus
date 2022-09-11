@@ -54,10 +54,12 @@ module router #(
     reg [PACKET_SIZE - 1 : 0] buffer_east [BUFFER_SIZE - 1 : 0];
     reg [PACKET_SIZE - 1 : 0] buffer_west [BUFFER_SIZE - 1 : 0];
     reg [PACKET_SIZE - 1 : 0] buffer_local [BUFFER_SIZE - 1 : 0];
+    reg [PACKET_SIZE - 1 : 0] buffer_local_generated;
 
     reg [1 : 0] buffer_east_route_info [BUFFER_SIZE - 1 : 0];
     reg [1 : 0] buffer_west_route_info [BUFFER_SIZE - 1 : 0];
     reg [1 : 0] buffer_local_route_info [BUFFER_SIZE - 1 : 0];
+    reg [1 : 0] buffer_local_route_info_generated;
 
     // reg [ptr_len - 1 : 0] east_rd_ptr, west_rd_ptr, local_rd_ptr;
     // reg [ptr_len - 1 : 0] east_wr_ptr, west_wr_ptr, local_wr_ptr;
@@ -123,8 +125,8 @@ module router #(
         .clk_counter(clk_counter),
         .inject_clk_ref(inject_clk_ref),
         .packet_wr_en(1'b1),
-        .packet(buffer_local[empty_local]),
-        .packet_route_info(buffer_local_route_info[empty_local]),
+        .packet(buffer_local_generated),
+        .packet_route_info(buffer_local_route_info_generated),
         .total_packet_sent(total_packet_sent_inner)
     );
 
@@ -144,7 +146,7 @@ module router #(
                 .clk(clk),
                 .rst_n(rst_n),
                 .in_buffer(buffer_east[i]),
-                .route_update_en((i == empty_east && empty_east_found)),
+                .route_update_en(1'b1), //(i == empty_east && empty_east_found)),
                 .out_dir(buffer_east_route_info[i])
             );
 
@@ -157,7 +159,7 @@ module router #(
                 .clk(clk),
                 .rst_n(rst_n),
                 .in_buffer(buffer_west[i]),
-                .route_update_en((i == empty_west && empty_west_found)),
+                .route_update_en(1), //(i == empty_west && empty_west_found)),
                 .out_dir(buffer_west_route_info[i])
             );
 
@@ -185,6 +187,7 @@ module router #(
                     buffer_east[i] <= 0;
                     buffer_west[i] <= 0;
                     buffer_local[i] <= 0;
+                    buffer_local_route_info[i] <= 0;
                 end
                 else begin
                     // we will not be able to overwriting leaving packet with new packet immediately,
@@ -218,6 +221,10 @@ module router #(
                     // the fulfilling of empty buffer is done through 'find_empty_buffer.v'
                     if (buffer_local[i][PACKET_SIZE - 1] == 1'b1 && buffer_local_route_info[i] == 2'b00) begin
                         buffer_local[i] <= 0;
+                    end
+                    else if (i == empty_local && buffer_local_generated[PACKET_SIZE - 1]) begin
+                        buffer_local[i] <= buffer_local_generated;
+                        buffer_local_route_info[i] <= buffer_local_route_info_generated;
                     end
                     else if (i == out_packet_pos_east && !out_packet_pos_in_east && out_packet_pos_valid_east_out) begin
                         buffer_local[i] <= 0;
@@ -271,14 +278,16 @@ module router #(
     ) east_out (
         .clk(clk),
         .rst_n(rst_n),
-        .backpressure(backpressure_east_rd),
-        .buffer_high_prior(buffer_east),
+        .backpressure(backpressure_west_rd),
+        .buffer_high_prior(buffer_west),
         .buffer_low_prior(buffer_local),
+        .buffer_high_prior_route_info(buffer_west_route_info),
+        .buffer_low_prior_route_info(buffer_local_route_info),
 
         .out_packet(link_east_out_inner),
-        .out_packet_pos(out_packet_pos_east),
-        .out_packet_pos_valid(out_packet_pos_valid_east_out),
-        .out_packet_pos_in_high(out_packet_pos_in_east)
+        .out_packet_pos(out_packet_pos_west),
+        .out_packet_pos_valid(out_packet_pos_valid_west_out),
+        .out_packet_pos_in_high(out_packet_pos_in_west)
     );
 
     switch_allocator #(
@@ -288,17 +297,22 @@ module router #(
     ) west_out (
         .clk(clk),
         .rst_n(rst_n),
-        .backpressure(backpressure_west_rd),
-        .buffer_high_prior(buffer_west),
+        .backpressure(backpressure_east_rd),
+        .buffer_high_prior(buffer_east),
         .buffer_low_prior(buffer_local),
+        .buffer_high_prior_route_info(buffer_east_route_info),
+        .buffer_low_prior_route_info(buffer_local_route_info),
 
         .out_packet(link_west_out_inner),
-        .out_packet_pos(out_packet_pos_west),
-        .out_packet_pos_valid(out_packet_pos_valid_west_out),
-        .out_packet_pos_in_high(out_packet_pos_in_west)
+        .out_packet_pos(out_packet_pos_east),
+        .out_packet_pos_valid(out_packet_pos_valid_east_out),
+        .out_packet_pos_in_high(out_packet_pos_in_east)
     );
 
     assign link_east_out = link_east_out_inner;
     assign link_west_out = link_west_out_inner;
+
+    assign total_packet_sent = total_packet_sent_inner;
+    assign total_packet_recieve = total_packet_recieve_inner;
 
 endmodule

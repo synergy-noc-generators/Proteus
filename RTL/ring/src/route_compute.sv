@@ -4,7 +4,7 @@ module route_compute #(
     parameter ROUTER_ID = 0,
     parameter ROUTING = 0, // 0 means random oblivous
     parameter PACKET_SIZE = 49,
-    parameter IN_PORT = 0, // 0x0 local, 0x1 east, 0x2 west
+    parameter IN_PORT = 0  // 0x0 local, 0x1 east, 0x2 west
 )(
     clk,
     rst_n,
@@ -23,7 +23,8 @@ module route_compute #(
     reg [1 : 0] out_dir_inner;
 
 
-    always_ff @(posedge clk or negedge rst_n) begin
+//     always_ff @(posedge clk or negedge rst_n) begin
+    always_comb  begin
         if (~rst_n) begin
             out_dir_inner <= 2'b00;
         end
