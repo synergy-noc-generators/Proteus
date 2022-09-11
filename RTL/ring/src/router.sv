@@ -159,7 +159,7 @@ module router #(
                 .clk(clk),
                 .rst_n(rst_n),
                 .in_buffer(buffer_west[i]),
-                .route_update_en(1), //(i == empty_west && empty_west_found)),
+                .route_update_en(1'b1), //(i == empty_west && empty_west_found)),
                 .out_dir(buffer_west_route_info[i])
             );
 
