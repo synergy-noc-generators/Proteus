@@ -32,6 +32,7 @@ class Router {
     int packets_sent;
     int latency_add_up; // do the average at the end for stats display
     int max_latency;
+    int final_output;
     int routing_algorithm;
     int traffic_pattern;
 
@@ -65,6 +66,7 @@ public:
     int get_packets_recieved();
     int get_max_latency();
     int get_added_latency();
+    int get_final_output();
     int get_deadlock_info();
 };
 

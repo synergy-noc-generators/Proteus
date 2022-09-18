@@ -21,6 +21,7 @@ Router::Router(int router_id, int routing_algorithm, int traffic_pattern) {
     this->packets_recieved = 0;
     this->packets_sent = 0;
     this->latency_add_up = 0;
+    this->final_output = 0;
     this->max_latency = 0;
     this->routing_algorithm = routing_algorithm;
     this->traffic_pattern = traffic_pattern;
@@ -88,6 +89,8 @@ INT16 Router::dest_compute() {
             return source*2;
         else
             return (source*2 - num_destinations + 1);
+    } else if (this->traffic_pattern == SYSTOLIC) {
+        return NUM_NODES-1;
     }
     return ERROR;
 }
@@ -106,6 +109,7 @@ void Router::packet_produce(VN vn) {
         this->buffer_local[location].source = this->router_id;
         this->buffer_local[location].timestamp = vn.get_current_cycle();
         this->buffer_local[location].dest = dest_compute();
+        this->buffer_local[location].data = this->router_id*this->router_id;
         this->packets_sent++;
         this->packet_wait_generate--;
         //std::cout << "packet generated in node "<< this->router_id << " At time :"<<this->buffer_local[location].timestamp << "Going to: " << this->buffer_local[location].dest << std::endl;
@@ -117,6 +121,7 @@ void Router::packet_produce(VN vn) {
 void Router::packet_consume(Packet packet, VN vn) {
     this->packets_recieved++;
     int latency = vn.get_current_cycle() - packet.timestamp;
+    this->final_output += packet.data; 
     this->max_latency = latency > max_latency ? latency : max_latency;
     this->latency_add_up += latency;
 }
@@ -339,6 +344,10 @@ int Router::get_packets_recieved() {
 
 int Router::get_max_latency() {
     return this->max_latency;
+}
+
+int Router::get_final_output() {
+    return this->final_output;
 }
 
 int Router::get_added_latency() {

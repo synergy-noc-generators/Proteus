@@ -12,6 +12,7 @@ Authors:    Abhimanyu Bambhaniya (abambhaniya3@gatech.edu)
 #include <ap_int.h>
 
 typedef ap_int<16> INT16;
+typedef ap_int<8> INT8;
 
 #define BUFFER_SIZE  4
 #define NUM_NODES  16
@@ -26,12 +27,14 @@ typedef ap_int<16> INT16;
 
 #define BIT_COMPLEMENT 0
 #define SHUFFLE 1
+#define SYSTOLIC 2
 
 struct Packet {
     bool valid;
     INT16 timestamp;
-    INT16 source;
-    INT16 dest;
+    INT16 data;
+    INT8 source;
+    INT8 dest;
     
     Packet()
     {
