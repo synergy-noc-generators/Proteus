@@ -35,21 +35,21 @@ bool VN::deadlock_check(int idle_cycle) {
     return idle_cycle >= this->deadlock_threshold;
 }
 
-bool VN::packet_if_send(int num_packets_sent,int random_number_lfsr,int node_id) {
-//     printf("For node %d, random_num = %d , %d  \n",node_id,(int)random_number_lfsr,(int)this->packet_inject_period) ;
-    if (num_packets_sent >= this->packets_per_node ) {
-        return false;
-    }
-//     else if (this->packet_inject_period == 1)
+// bool VN::packet_if_send(int num_packets_sent,int random_number_lfsr,int node_id) {
+// //     printf("For node %d, random_num = %d , %d  \n",node_id,(int)random_number_lfsr,(int)this->packet_inject_period) ;
+//     if (num_packets_sent >= this->packets_per_node ) {
+//         return false;
+//     }
+// //     else if (this->packet_inject_period == 1)
+// //     {
+// //         return true;
+// //      }
+//     else if ((int)this->packet_inject_period >= (int)random_number_lfsr)
 //     {
+//         printf("For node %d, random_num = %d\n",node_id,random_number_lfsr) ;
 //         return true;
-//      }
-    else if ((int)this->packet_inject_period >= (int)random_number_lfsr)
-    {
-        printf("For node %d, random_num = %d\n",node_id,random_number_lfsr) ;
-        return true;
-    }
-}
+//     }
+// }
 
 int VN::get_current_cycle() {
     return this->current_cycle;

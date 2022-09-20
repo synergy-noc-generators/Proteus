@@ -201,7 +201,7 @@ void mesh(
         //std::cout << "Node : "<<i<< " , num packets added till now = "<< node[i].get_packets_sent() << std::endl;
         total_packets_recieved += node[i].get_packets_recieved();
         total_packets_sent += node[i].get_packets_sent();
-        total_latency +=  node[i].get_added_latency();
+        total_latency +=  node[i].get_added_latency() + node[i].get_queueing_latency() ;
         overall_max_latency = node[i].get_max_latency() > overall_max_latency ? node[i].get_max_latency() : overall_max_latency;
         num_node_deadlock_detected = node[i].get_deadlock_info() != 0 ? num_node_deadlock_detected + 1 : num_node_deadlock_detected;
     }

@@ -17,11 +17,12 @@ Router::Router() {
 Router::Router(int router_id, int routing_algorithm, int traffic_pattern) {
     this->router_id = router_id;
     this->buffer_threshold = 1;
-    this->packet_wait_generate[router_id] = 0;
+    this->packet_wait_generate = 0;
     this->packet_wait_cycle = 0;
     this->packets_recieved = 0;
     this->packets_sent = 0;
     this->latency_add_up = 0;
+    this->queuing_delay = 0;
     this->max_latency = 0;
     this->routing_algorithm = routing_algorithm;
     this->traffic_pattern = traffic_pattern;
@@ -135,7 +136,7 @@ void Router::packet_add_to_queue(VN vn,int random_lfsr) {
 
 // try to generate packets and put into local buffers
 void Router::packet_produce(VN vn,int random_lfsr) {
-    int packet_sent_queued = this->packets_sent + this->packet_wait_generate[this->router_id];
+    int packet_sent_queued = this->packets_sent + this->packet_wait_generate;
 //     if (vn.packet_if_send(packet_sent_queued, random_lfsr, this->router_id)) {
 //         this->packet_wait_generate[this->router_id] += 1; // we do not record the cycle here, only calculate latency once the package enter the network
 //     }
@@ -143,8 +144,8 @@ void Router::packet_produce(VN vn,int random_lfsr) {
     int location = find_empty_buffer(this->buffer_local);
 //     printf("Trying to produce packet for node %d, at time %d, packet_queued: %d\n",this->router_id,vn.get_current_cycle(),this->packet_wait_generate[this->router_id] );
 //     if (location != ERROR && this->packet_wait_generate[this->router_id] > 0) {
-    if (packets_sent < vn.get_packets_per_node() ) {
-        if(vn.get_packet_inject_period() >= random_lfsr)
+    if (this->packets_sent < vn.get_packets_per_node() ) {
+        if((vn.get_packet_inject_period() >= random_lfsr) || ((this->packet_wait_generate>0) && (this->packet_wait_generate < this->packets_sent)))
         {
 //             printf("For node %d, random_num = %d\n",this->router_id,random_lfsr) ;
             if(location != ERROR) {
@@ -153,11 +154,16 @@ void Router::packet_produce(VN vn,int random_lfsr) {
             this->buffer_local[location].timestamp = vn.get_current_cycle();
             this->buffer_local[location].dest = dest_compute();
             this->packets_sent++;
-//             this->packet_wait_generate[this->router_id]--;
-//             std::cout << "packet generated in node "<< this->router_id << " At time :"<<this->buffer_local[location].timestamp << " Going to: " << this->buffer_local[location].dest << " Packet queued: " << this->packet_wait_generate[this->router_id] << std::endl;
+            if(this->packet_wait_generate > 0)
+                this->packet_wait_generate--;
+//             std::cout << "packet generated in node "<< this->router_id << " At time :"<<this->buffer_local[location].timestamp << " Going to: " << this->buffer_local[location].dest << " Packet queued: " << this->packet_wait_generate << std::endl;
 #ifdef DEBUG
         std::cout << "packet generated in node "<< this->router_id << " At time :"<<this->buffer_local[location].timestamp << " Going to: " << this->buffer_local[location].dest << std::endl;
 #endif
+            }
+            else
+            {
+                this->packet_wait_generate++;
             }
         }
     }
@@ -170,6 +176,7 @@ void Router::packet_consume(Packet packet, VN vn) {
     int latency = vn.get_current_cycle() - packet.timestamp;
     this->max_latency = latency > max_latency ? latency : max_latency;
     this->latency_add_up += latency;
+    this->queuing_delay += this->packet_wait_generate;
 }
 
 void Router::packet_idle_cycle_update() {
@@ -685,6 +692,9 @@ int Router::get_added_latency() {
     return this->latency_add_up;
 }
 
+int Router::get_queueing_latency() {
+    return this->queuing_delay;
+}
 int Router::get_deadlock_info() {
     if (this->deadlock) {
         return 1;

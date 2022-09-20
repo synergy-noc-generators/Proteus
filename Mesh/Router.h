@@ -34,11 +34,12 @@ class Router {
     INT16 local_route_info[BUFFER_SIZE] = {EVICT, EVICT, EVICT, EVICT};
     INT16 packet_idle_cycle_local[BUFFER_SIZE]=  {0, 0, 0, 0};
 
-    int packet_wait_generate[NUM_NODES]; // packets waiting for generating
+    int packet_wait_generate; // packets waiting for generating
     int packet_wait_cycle;
     int packets_recieved;
     int packets_sent;
     int latency_add_up; // do the average at the end for stats display
+    int queuing_delay; // do the average at the end for stats display
     int max_latency;
     int routing_algorithm;
     int traffic_pattern;
@@ -78,6 +79,7 @@ public:
     int get_packets_recieved();
     int get_max_latency();
     int get_added_latency();
+    int get_queueing_latency();
     int get_deadlock_info();
 };
 

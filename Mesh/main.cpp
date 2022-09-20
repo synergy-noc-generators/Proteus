@@ -33,7 +33,7 @@ int main ()
     
     int deadlock_cycles = 1000;
     int num_packets_per_node = 2000;
-    int packet_inject_rate = 255;  // For injection rate 0 to 1, multiply by 255 and make int 0.5 -> 127
+    int packet_inject_rate = 125;  // For injection rate 0 to 1, multiply by 255 and make int 0.5 -> 127
     int routing_algorithm = XY;
     int traffic_pattern = BIT_COMPLEMENT;
     int total_packets_sent = 0;
@@ -42,7 +42,7 @@ int main ()
     int overall_max_latency = 0;
     int num_node_deadlock_detected = 0;
    
-   for(;packet_inject_rate>=20;packet_inject_rate=packet_inject_rate-30) 
+   for(;packet_inject_rate>=20;packet_inject_rate=packet_inject_rate-5) 
    {    
        mesh (
         deadlock_cycles,
