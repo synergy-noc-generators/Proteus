@@ -34,7 +34,8 @@ class Router {
     INT16 local_route_info[BUFFER_SIZE] = {EVICT, EVICT, EVICT, EVICT};
     INT16 packet_idle_cycle_local[BUFFER_SIZE]=  {0, 0, 0, 0};
 
-    int packet_wait_generate; // packets waiting for generating
+    int packet_wait_generate[NUM_NODES]; // packets waiting for generating
+    int packet_wait_cycle;
     int packets_recieved;
     int packets_sent;
     int latency_add_up; // do the average at the end for stats display
@@ -68,9 +69,9 @@ public:
     ap_uint<16> random_counter_reset =49;
     int get_num_valid_buffer(Packet buffers[BUFFER_SIZE]);
     INT16 dest_compute();                   //Calculates the packet destination based on network traffic pattern.
-    void packet_add_to_queue(VN vn);
-    void packet_produce(VN vn);
-    void router_phase_one(Packet north_input, Packet east_input, Packet west_input, Packet south_input, VN vn);
+    void packet_add_to_queue(VN vn,int random_lfsr);
+    void packet_produce(VN vn,int random_lfsr);
+    void router_phase_one(Packet north_input, Packet east_input, Packet west_input, Packet south_input, VN vn,int random_lfsr);
     Packet router_phase_two(INT16 output_port_on_off, int output_dirn);
     INT16 on_off_switch_update(int input_port);
     int get_packets_sent();

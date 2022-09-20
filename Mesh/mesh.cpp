@@ -11,6 +11,7 @@ Authors:    Abhimanyu Bambhaniya (abambhaniya3@gatech.edu)
 #include <stdio.h>
 // #define DEBUG
 
+ap_uint<8> lfsr; 
 ////////////////////Torus Config/////////////////////////////
 //
 //  0 - 1 - 2 - 3  
@@ -23,6 +24,23 @@ Authors:    Abhimanyu Bambhaniya (abambhaniya3@gatech.edu)
 //
 //
 ///////////////////////////////////////////////////////////////
+unsigned int pseudo_random(int load = 0,ap_uint<8> seed = 129) {
+    if (load ==1 )
+    {
+        lfsr = seed;
+        return 0;
+    }
+    else {
+//         printf("S lfsr:%d ",lfsr);
+        bool b_7 = lfsr.get_bit(8-7);
+        bool b_6 = lfsr.get_bit(8-6);
+        bool new_bit = b_7 ^ b_6 ;
+        lfsr = lfsr >> 1;
+        lfsr.set_bit(7, new_bit);
+//         printf("lfsr:%d ",lfsr);
+        return lfsr.to_uint();
+    }
+}
 void mesh( 
         int       deadlock_cycles,
         int       num_packets_per_node,
@@ -52,7 +70,7 @@ void mesh(
     static VN noc_vn(NUM_NODES);
 
     noc_vn = VN(deadlock_cycles, num_packets_per_node, packet_inject_period, routing_algorithm, traffic_pattern,NUM_NODES);
-
+    pseudo_random(1,129);
     Packet link_east[NUM_NODES];
     Packet link_west[NUM_NODES];
     Packet link_north[NUM_NODES];
@@ -72,9 +90,9 @@ void mesh(
 
     int total_packets_recieved_inner = 0;
     while(total_packets_recieved_inner < num_packets_per_node*NUM_NODES)
-//     while(noc_vn.get_current_cycle() < 1000)
+//     while(noc_vn.get_current_cycle() < 10000)
     {
-
+        pseudo_random();
         for (int i = 0 ; i < (NUM_NODES); i++)
         {
             //NOte: The EAST inp will come from West[i+1] amd west inp will come from east[i-1]
@@ -97,23 +115,23 @@ void mesh(
             //In phase one following things happens, Packets are read from Link and written to the BUffers
             //New Packets are generated in the buffer, Route is computed for each package that is to be sent out.
             if((i/NODES_PER_ROW==0) && (i%NODES_PER_ROW==0))        //NW    0
-                node[i].router_phase_one( dummy,link_west[i+1],dummy, link_north[i+NODES_PER_ROW], noc_vn);
+                node[i].router_phase_one( dummy,link_west[i+1],dummy, link_north[i+NODES_PER_ROW], noc_vn,pseudo_random());
             else if((i/NODES_PER_ROW==0) && (i%NODES_PER_ROW == (NUM_COLS-1)))       //NE    3
-                node[i].router_phase_one( dummy,dummy,link_east[i-1], link_north[i+NODES_PER_ROW], noc_vn);
+                node[i].router_phase_one( dummy,dummy,link_east[i-1], link_north[i+NODES_PER_ROW], noc_vn,pseudo_random());
             else if((i/NODES_PER_ROW == (NUM_ROWS-1)) && (i%NODES_PER_ROW == 0))       //SW    12
-                node[i].router_phase_one( link_south[i-NODES_PER_ROW],link_west[i+1],dummy, dummy, noc_vn);
+                node[i].router_phase_one( link_south[i-NODES_PER_ROW],link_west[i+1],dummy, dummy, noc_vn,pseudo_random());
             else if((i/NODES_PER_ROW == (NUM_ROWS-1)) && (i%NODES_PER_ROW == (NUM_COLS-1)))       //SE    15
-                node[i].router_phase_one( link_south[i-NODES_PER_ROW],dummy,link_east[i-1], dummy, noc_vn);
+                node[i].router_phase_one( link_south[i-NODES_PER_ROW],dummy,link_east[i-1], dummy, noc_vn,pseudo_random());
             else if((i/NODES_PER_ROW==0))       //N
-                node[i].router_phase_one( dummy,link_west[i+1],link_east[i-1], link_north[i+NODES_PER_ROW], noc_vn);
+                node[i].router_phase_one( dummy,link_west[i+1],link_east[i-1], link_north[i+NODES_PER_ROW], noc_vn,pseudo_random());
             else if((i/NODES_PER_ROW == (NUM_ROWS-1)))       //S
-                node[i].router_phase_one( link_south[i-NODES_PER_ROW],link_west[i+1],link_east[i-1], dummy, noc_vn);
+                node[i].router_phase_one( link_south[i-NODES_PER_ROW],link_west[i+1],link_east[i-1], dummy, noc_vn,pseudo_random());
             else if((i%NODES_PER_ROW == 0))       //W
-                node[i].router_phase_one( link_south[i-NODES_PER_ROW],link_west[i+1],dummy, link_north[i+NODES_PER_ROW], noc_vn);
+                node[i].router_phase_one( link_south[i-NODES_PER_ROW],link_west[i+1],dummy, link_north[i+NODES_PER_ROW], noc_vn,pseudo_random());
             else if((i%NODES_PER_ROW == (NUM_COLS-1)))       //E
-                node[i].router_phase_one( link_south[i-NODES_PER_ROW],dummy,link_east[i-1], link_north[i+NODES_PER_ROW], noc_vn);
+                node[i].router_phase_one( link_south[i-NODES_PER_ROW],dummy,link_east[i-1], link_north[i+NODES_PER_ROW], noc_vn,pseudo_random());
             else
-                node[i].router_phase_one( link_south[i-NODES_PER_ROW],link_west[i+1],link_east[i-1], link_north[i+NODES_PER_ROW], noc_vn);
+                node[i].router_phase_one( link_south[i-NODES_PER_ROW],link_west[i+1],link_east[i-1], link_north[i+NODES_PER_ROW], noc_vn,pseudo_random());
         }
 
         for (int i = 0; i < NUM_NODES; i++)
@@ -127,6 +145,7 @@ void mesh(
 #endif
         }
 
+        noc_vn.inc_cycle();
        for(int i = 0 ; i< NUM_NODES; i++)
        { 
             //In Phase 2, The packets are written to the links for the next cycle.
@@ -188,5 +207,12 @@ void mesh(
     }
     //printf("packet recieved: %d", (int)total_packets_recieved_inner);
     //printf("packet sent: %d", (int)total_packets_sent);
-
+//     printf("Current cycle: %d\n",noc_vn.get_current_cycle());
+//     for( int i =0 ; i < 129; i++)
+//     {
+//         
+//         printf("LFSR :%d\n", noc_vn.pseudo_random());
+//     }
 }
+
+

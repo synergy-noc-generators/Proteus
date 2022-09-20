@@ -33,8 +33,8 @@ int main ()
     
     int deadlock_cycles = 1000;
     int num_packets_per_node = 2000;
-    int packet_inject_period = 2;
-    int routing_algorithm = WEST_FIRST;
+    int packet_inject_rate = 255;  // For injection rate 0 to 1, multiply by 255 and make int 0.5 -> 127
+    int routing_algorithm = XY;
     int traffic_pattern = BIT_COMPLEMENT;
     int total_packets_sent = 0;
     int total_packets_recieved = 0;
@@ -42,11 +42,12 @@ int main ()
     int overall_max_latency = 0;
     int num_node_deadlock_detected = 0;
    
-   for(;packet_inject_period>=1;packet_inject_period--) 
-   {    mesh (
+   for(;packet_inject_rate>=20;packet_inject_rate=packet_inject_rate-30) 
+   {    
+       mesh (
         deadlock_cycles,
         num_packets_per_node,
-        packet_inject_period,
+        packet_inject_rate,
         routing_algorithm,
         traffic_pattern,
         total_packets_sent,
@@ -56,12 +57,13 @@ int main ()
         num_node_deadlock_detected
     );
 
-    std::cout << "Packet Injection period: " << packet_inject_period << std::endl;
-    std::cout << "Total packets recieved: " << total_packets_recieved << std::endl;
-    std::cout << "Total packets sent: " << total_packets_sent << std::endl;
-    std::cout << "Average latency: " << (float)total_latency/(num_packets_per_node*NUM_NODES) << std::endl;
-    std::cout << "Max latency: " << overall_max_latency << std::endl;
-    std::cout << "Number of nodes detect deadlock: " << num_node_deadlock_detected << std::endl;
+//     std::cout << "Packet Injection rate: " << packet_inject_rate << std::endl;
+    std::cout << "Packet Injection rate: " << packet_inject_rate ;
+//     std::cout << "Total packets recieved: " << total_packets_recieved << std::endl;
+//     std::cout << "Total packets sent: " << total_packets_sent << std::endl;
+    std::cout << "  Average latency: " << (float)total_latency/(num_packets_per_node*NUM_NODES) << std::endl;
+//     std::cout << "Max latency: " << overall_max_latency << std::endl;
+//     std::cout << "Number of nodes detect deadlock: " << num_node_deadlock_detected << std::endl;
 }
 
     std::cout << "Simulation SUCCESSFUL!!!" << std::endl;

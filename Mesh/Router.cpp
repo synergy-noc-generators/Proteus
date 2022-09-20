@@ -17,7 +17,8 @@ Router::Router() {
 Router::Router(int router_id, int routing_algorithm, int traffic_pattern) {
     this->router_id = router_id;
     this->buffer_threshold = 1;
-    this->packet_wait_generate = 0;
+    this->packet_wait_generate[router_id] = 0;
+    this->packet_wait_cycle = 0;
     this->packets_recieved = 0;
     this->packets_sent = 0;
     this->latency_add_up = 0;
@@ -129,25 +130,36 @@ INT16 Router::dest_compute() {
     return ERROR;
 }
 
-void Router::packet_add_to_queue(VN vn) {
-    if (vn.packet_if_send()) {
-        this->packet_wait_generate += 1; // we do not record the cycle here, only calculate latency once the package enter the network
-    }
+void Router::packet_add_to_queue(VN vn,int random_lfsr) {
 }
 
 // try to generate packets and put into local buffers
-void Router::packet_produce(VN vn) {
+void Router::packet_produce(VN vn,int random_lfsr) {
+    int packet_sent_queued = this->packets_sent + this->packet_wait_generate[this->router_id];
+//     if (vn.packet_if_send(packet_sent_queued, random_lfsr, this->router_id)) {
+//         this->packet_wait_generate[this->router_id] += 1; // we do not record the cycle here, only calculate latency once the package enter the network
+//     }
+// 
     int location = find_empty_buffer(this->buffer_local);
-    if (location != ERROR && this->packet_wait_generate > 0) {
-        this->buffer_local[location].valid = true;
-        this->buffer_local[location].source = this->router_id;
-        this->buffer_local[location].timestamp = vn.get_current_cycle();
-        this->buffer_local[location].dest = dest_compute();
-        this->packets_sent++;
-        this->packet_wait_generate--;
+//     printf("Trying to produce packet for node %d, at time %d, packet_queued: %d\n",this->router_id,vn.get_current_cycle(),this->packet_wait_generate[this->router_id] );
+//     if (location != ERROR && this->packet_wait_generate[this->router_id] > 0) {
+    if (packets_sent < vn.get_packets_per_node() ) {
+        if(vn.get_packet_inject_period() >= random_lfsr)
+        {
+//             printf("For node %d, random_num = %d\n",this->router_id,random_lfsr) ;
+            if(location != ERROR) {
+            this->buffer_local[location].valid = true;
+            this->buffer_local[location].source = this->router_id;
+            this->buffer_local[location].timestamp = vn.get_current_cycle();
+            this->buffer_local[location].dest = dest_compute();
+            this->packets_sent++;
+//             this->packet_wait_generate[this->router_id]--;
+//             std::cout << "packet generated in node "<< this->router_id << " At time :"<<this->buffer_local[location].timestamp << " Going to: " << this->buffer_local[location].dest << " Packet queued: " << this->packet_wait_generate[this->router_id] << std::endl;
 #ifdef DEBUG
         std::cout << "packet generated in node "<< this->router_id << " At time :"<<this->buffer_local[location].timestamp << " Going to: " << this->buffer_local[location].dest << std::endl;
 #endif
+            }
+        }
     }
     
 
@@ -200,7 +212,7 @@ bool Router::Buffer_Write(Packet packet, int buffer_location) {
         }
 
 #ifdef DEBUG 
-         std::cout << " Writing to buffer east at location " << location << " , the packet V: "<< packet.valid << " timestamp " << packet.timestamp << " source " << packet.source << " dest " << packet.dest << std::endl ;
+//          std::cout << " Writing to buffer east at location " << location << " , the packet V: "<< packet.valid << " timestamp " << packet.timestamp << " source " << packet.source << " dest " << packet.dest << std::endl ;
 #endif
         buffer_east[location] = packet;
         return true;
@@ -211,7 +223,7 @@ bool Router::Buffer_Write(Packet packet, int buffer_location) {
             return false;
         }
 #ifdef DEBUG 
-         std::cout << " Writing to buffer west at location " << location << " , the packet V: "<< packet.valid << " timestamp " << packet.timestamp << " source " << packet.source << " dest " << packet.dest << std::endl ;
+//          std::cout << " Writing to buffer west at location " << location << " , the packet V: "<< packet.valid << " timestamp " << packet.timestamp << " source " << packet.source << " dest " << packet.dest << std::endl ;
 #endif
         buffer_west[location] = packet;
         return true;
@@ -223,7 +235,7 @@ bool Router::Buffer_Write(Packet packet, int buffer_location) {
         }
 
 #ifdef DEBUG 
-         std::cout << " Writing to buffer north at location " << location << " , the packet V: "<< packet.valid << " timestamp " << packet.timestamp << " source " << packet.source << " dest " << packet.dest << std::endl ;
+//          std::cout << " Writing to buffer north at location " << location << " , the packet V: "<< packet.valid << " timestamp " << packet.timestamp << " source " << packet.source << " dest " << packet.dest << std::endl ;
 #endif
         buffer_north[location] = packet;
         return true;
@@ -236,7 +248,7 @@ bool Router::Buffer_Write(Packet packet, int buffer_location) {
         }
 
 #ifdef DEBUG 
-         std::cout << " Writing to buffer south at location " << location << " , the packet V: "<< packet.valid << " timestamp " << packet.timestamp << " source " << packet.source << " dest " << packet.dest << std::endl ;
+//          std::cout << " Writing to buffer south at location " << location << " , the packet V: "<< packet.valid << " timestamp " << packet.timestamp << " source " << packet.source << " dest " << packet.dest << std::endl ;
 #endif
         buffer_south[location] = packet;
         return true;
@@ -570,7 +582,7 @@ Packet Router::Switch_Allocator(INT16 backpressure, int output_port) {
 }
 
 // have a function has parameter of the buffer write data, then another function for different output port packet return for link traversal
-void Router::router_phase_one(Packet north_input, Packet east_input, Packet west_input, Packet south_input, VN vn) {
+void Router::router_phase_one(Packet north_input, Packet east_input, Packet west_input, Packet south_input, VN vn,int random_lfsr) {
     // deadlock check
     deadlock_check_all(vn);
 
@@ -608,8 +620,8 @@ void Router::router_phase_one(Packet north_input, Packet east_input, Packet west
     }
 
     // local new packet produce
-    packet_add_to_queue(vn);
-    packet_produce(vn);
+//     packet_add_to_queue(vn,random_lfsr);
+    packet_produce(vn,random_lfsr);
 
 
     // Writes from the links to the buffer in the node.
@@ -634,7 +646,7 @@ Packet Router::router_phase_two(INT16 backpressure, int output_dirn) {
     // switch allocation, buffer read, return the packet
     Packet ret = Switch_Allocator(backpressure, output_dirn);
 #ifdef DEBUG
-    printf("Packet going %d: %d %d %d %d \n", output_dirn, ret.valid, (int)ret.timestamp, (int)ret.source, (int)ret.dest);
+//     printf("Packet going %d: %d %d %d %d \n", output_dirn, ret.valid, (int)ret.timestamp, (int)ret.source, (int)ret.dest);
 #endif
     return ret;
 }
